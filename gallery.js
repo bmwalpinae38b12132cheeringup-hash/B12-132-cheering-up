@@ -1,7 +1,7 @@
 // gallery.js
 const INDEX_URL = 'data/index.json';
-const THUMB_URL = 'https://pub-3a115c1e9a8b4541b7685443d9eb4263.r2.dev/thumbs/';
-const FULL_URL  = 'https://pub-3a115c1e9a8b4541b7685443d9eb4263.r2.dev/images/';
+const THUMB_BASE = 'https://pub-3a115c1e9a8b4541b7685443d9eb4263.r2.dev/';
+const FULL_BASE = 'https://pub-3a115c1e9a8b4541b7685443d9eb4263.r2.dev/';
 
 let data, filtered, idx;
 
@@ -25,7 +25,7 @@ function render() {
   filtered.forEach((rec, i) => {
     const box = document.createElement('div');
     box.className = 'thumb-box';
-    box.style.backgroundImage = `url(${THUMB_URL + rec.file})`;
+    box.style.backgroundImage = `url(${THUMB_BASE + rec.thumb})`;
 
     const txt = document.createElement('div');
     txt.className = 'thumb-text';
@@ -51,7 +51,7 @@ function openBox(i) {
     // ставим хэш
     history.replaceState(null, null, '#' + rec.id);
   
-    document.getElementById('lb-img').src   = FULL_URL + rec.file;
+    document.getElementById('lb-img').src = FULL_BASE + rec.full;
     document.getElementById('lb-caption').textContent = rec.caption + ' (' + rec.date.slice(0,10) + ')';
     document.getElementById('lightbox').classList.remove('hidden');
   }
@@ -89,4 +89,5 @@ document.getElementById('lb-prev').onclick  = () => { idx = (idx - 1 + filtered.
 document.getElementById('lb-next').onclick  = () => { idx = (idx + 1) % filtered.length; openBox(idx); };
 
 load();
+
 
