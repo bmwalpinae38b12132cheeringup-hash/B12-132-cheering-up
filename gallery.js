@@ -10,14 +10,25 @@ async function load() {
     filtered = data;
     render();
   
-    const wanted = location.hash.slice(1).split('?')[0]; // "#10?img=..." → "10"
+    const hash = location.hash.slice(1);
+    const wanted = hash.split('?')[0]; // "#10?img=..." → "10"
+    
+    console.log('Hash from URL:', hash);
+    console.log('Wanted ID:', wanted);
+    
     if (wanted) {
-      const i = filtered.findIndex(r => r.id == wanted);
-      if (i !== -1) openBox(i);
+      // Ищем запись по ID (как число или строка)
+      const i = filtered.findIndex(r => r.id == wanted || r.id.toString() === wanted);
+      console.log('Found index:', i);
+      
+      if (i !== -1) {
+        // НЕМНОЖКО ЖДЁМ чтобы страница загрузилась
+        setTimeout(() => openBox(i), 300);
+      }
     }
   
     document.getElementById('search').addEventListener('input', onSearch);
-  }
+}
 
 function render() {
   const grid = document.getElementById('grid');
@@ -47,32 +58,36 @@ function onSearch(e) {
 function openBox(i) {
     idx = i;
     const rec = filtered[idx];
-  
-    // ставим хэш
+    
+    console.log('Opening box:', i, 'ID:', rec.id);
+    
+    // Обновляем хэш
     history.replaceState(null, null, '#' + rec.id);
-  
+    
+    // Устанавливаем картинку и описание
     document.getElementById('lb-img').src = FULL_BASE + rec.full;
     document.getElementById('lb-caption').textContent = rec.caption + ' (' + rec.date.slice(0,10) + ')';
+    
+    // Показываем лайтбокс
     document.getElementById('lightbox').classList.remove('hidden');
-  }
+    
+    // Прокручиваем к началу страницы для мобильных
+    window.scrollTo(0, 0);
+}
 
   const shareBtn = document.getElementById('lb-share');
 
 shareBtn.addEventListener('click', () => {
   const rec = filtered[idx];
   
-  // Формируем полный URL для превью
-  const currentUrl = new URL(window.location.href);
-  const baseUrl = currentUrl.origin + currentUrl.pathname;
-  const previewUrl = baseUrl.replace(/index\.html$/, '') + 'preview.html#' + rec.id;
+  // ПРОСТОЙ URL без сложной логики
+  const currentUrl = window.location.origin + window.location.pathname;
+  const previewUrl = currentUrl.replace('index.html', 'preview.html') + '#' + rec.id;
   
-  console.log('Sharing URL:', previewUrl);
+  console.log('Sharing:', previewUrl);
   
-  // Открываем Telegram Share с текстом
-  const shareText = encodeURIComponent('Посмотри это фото из канала BMW Alpina E38 B12 #132:');
-  const fullUrl = `https://t.me/share/url?url=${encodeURIComponent(previewUrl)}&text=${shareText}`;
-  
-  window.open(fullUrl, '_blank', 'width=550,height=400');
+  // Простой share в Telegram
+  window.open('https://t.me/share/url?url=' + encodeURIComponent(previewUrl), '_blank');
 });
 
 // в gallery.js после объявления openBox() сфсфыс
@@ -89,5 +104,6 @@ document.getElementById('lb-prev').onclick  = () => { idx = (idx - 1 + filtered.
 document.getElementById('lb-next').onclick  = () => { idx = (idx + 1) % filtered.length; openBox(idx); };
 
 load();
+
 
 
