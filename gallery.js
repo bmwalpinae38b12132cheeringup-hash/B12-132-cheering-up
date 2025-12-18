@@ -61,11 +61,10 @@ const shareBtn = document.getElementById('lb-share');
 shareBtn.addEventListener('click', () => {
     const rec  = filtered[idx];
     const base = location.origin + location.pathname.replace(/\/[^\/]*$/,'/');
-    const page = base + 'share.html#' + rec.id +
+    const page = base + 'preview.html#' + rec.id +
                  '?img=' + encodeURIComponent(THUMB_URL + rec.file) +
-                 '&cap=' + encodeURIComponent(rec.caption || 'Фото из канала');
-    window.location = 'https://t.me/share/url?url=' + encodeURIComponent(page) +
-                      '&text=' + encodeURIComponent(rec.caption || '');
+                 '&cap=' + encodeURIComponent(rec.caption || '');
+    window.location = 'https://t.me/share/url?url=' + encodeURIComponent(page);
   });
 
 // в gallery.js после объявления openBox()
