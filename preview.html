@@ -1,60 +1,29 @@
+
 <!doctype html>
 <html lang="ru">
 <head>
   <meta charset="utf-8">
-  <title>BMW Alpina E38 B12 #132 - Фото</title>
-  
-  <!-- Open Graph метатеги -->
-  <meta property="og:title" content="BMW Alpina E38 B12 #132">
-  <meta property="og:description" content="Фото из канала @alpina_b12_132">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="">
-  <meta property="og:image" content="" id="ogImage">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-  
-  <!-- Twitter Card -->
+  <title>Фото из канала</title>
+  <meta id="ogImg" property="og:image" content="">
+  <meta property="og:title" content="Фото из канала">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="BMW Alpina E38 B12 #132">
-  <meta name="twitter:description" content="Фото из канала @alpina_b12_132">
-  <meta name="twitter:image" content="" id="twitterImage">
-  
-  <!-- Редирект через 0.1 секунду -->
-  <meta http-equiv="refresh" content="0.1; url=./index.html">
+
+  <!-- Редирект с учётом base path на GitHub Pages -->
+  <meta http-equiv="refresh" content="0; url=./index.html">
 </head>
 <body>
   <script>
-    // Получаем ID из URL
-    const hash = window.location.hash;
-    const id = hash ? hash.substring(1).split('?')[0] : '';
-    
-    if (id) {
-      // ПРОСТОЙ ВАРИАНТ: предполагаем структуру файла
-      // Если файлы имеют формат "id_timestamp.jpg"
-      const thumbUrl = 'https://pub-3a115c1e9a8b4541b7685443d9eb4263.r2.dev/thumbs/' + id + '_1706124883.jpg';
-      
-      console.log('Setting preview for ID:', id);
-      console.log('Image URL:', thumbUrl);
-      
-      // Устанавливаем метатеги
-      document.getElementById('ogImage').content = thumbUrl;
-      document.getElementById('twitterImage').content = thumbUrl;
-      
-      // Для отладки показываем информацию
-      document.body.innerHTML = `
-        <div style="text-align: center; padding: 20px; font-family: Arial;">
-          <h3>Превью для Telegram</h3>
-          <p>ID: ${id}</p>
-          <p>Картинка будет загружена в Telegram</p>
-          <p><small>Переход в галерею...</small></p>
-        </div>
-      `;
-    }
-    
-    // Редирект на index.html с хэшем
-    setTimeout(() => {
-      window.location.replace('./index.html' + hash);
-    }, 100);
+    // берём id из hash
+    const id = location.hash.slice(1).split('?')[0];
+    // формируем прямую ссылку на thumb
+    const thumb = 'https://pub-3a115c1e9a8b4541b7685443d9eb4263.r2.dev/thumbs/' + id + '.jpg';
+    document.getElementById('ogImg').content = thumb;
+
+    // Идём на сайт с правильным путём
+    const basePath = location.pathname.includes('/preview.html') 
+      ? './index.html' 
+      : '/index.html';
+    location.replace(basePath + '#' + id);
   </script>
 </body>
 </html>
