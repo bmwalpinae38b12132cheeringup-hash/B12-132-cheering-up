@@ -56,19 +56,16 @@ function openBox(i) {
     document.getElementById('lightbox').classList.remove('hidden');
   }
 
-const shareBtn = document.getElementById('lb-share');
+  const shareBtn = document.getElementById('lb-share');
 
-shareBtn.addEventListener('click', () => {
-  const rec  = filtered[idx];
-  // ← важно: берём путь с учётом репо
-  const base = location.origin + location.pathname.slice(0, location.pathname.lastIndexOf('/') + 1);
-  const page = base + 'preview.html#' + rec.id +
-               '?img=' + encodeURIComponent(THUMB_URL + rec.file) +
-               '&cap=' + encodeURIComponent(rec.caption || '');
-  window.location = 'https://t.me/share/url?url=' + encodeURIComponent(page);
-});
+  shareBtn.addEventListener('click', () => {
+    const rec  = filtered[idx];
+    const base = location.origin + location.pathname.slice(0, location.pathname.lastIndexOf('/') + 1);
+    const page = base + 'preview.html#' + rec.id;   // **только hash**, никаких ?img=…
+    window.location = 'https://t.me/share/url?url=' + encodeURIComponent(page);
+  });
 
-// в gallery.js после объявления openBox()
+// в gallery.js после объявления openBox() сфсфыс
 const lb = document.getElementById('lightbox');
 
 lb.addEventListener('click', e => {
@@ -82,4 +79,3 @@ document.getElementById('lb-prev').onclick  = () => { idx = (idx - 1 + filtered.
 document.getElementById('lb-next').onclick  = () => { idx = (idx + 1) % filtered.length; openBox(idx); };
 
 load();
-
