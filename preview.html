@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>Фото из канала</title>
+
+  <!-- делаем страницу картинкой для Telegram -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Фото из канала">
+  <meta property="og:description" content="">
+  <meta property="og:image" content="">
+  <meta property="og:image:width" content="600">
+  <meta property="og:image:height" content="600">
+
+  <!-- мгновенный редирект на сайт с нужным фото -->
+  <meta http-equiv="refresh" content="0; url=/index.html{{HASH}}">
+</head>
+<body>
+  <script>
+    // заполняем description и картинку из query-параметров
+    const p = new URLSearchParams(location.search);
+    const img = p.get('img') || '';
+    const cap = p.get('cap') || '';
+    document.querySelector('meta[property="og:description"]').content = cap;
+    document.querySelector('meta[property="og:image"]').content = img;
+
+    // редирект на сайт с якорем
+    location.replace('/index.html' + location.hash);
+  </script>
+</body>
+</html>
