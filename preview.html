@@ -2,27 +2,64 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8">
-  <title>Фото из канала</title>
-  <meta id="ogImg" property="og:image" content="">
-  <meta property="og:title" content="Фото из канала">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BMW Alpina E38 B12 #132 - Фото из канала</title>
+  
+  <!-- Open Graph метатеги для Telegram/Facebook -->
+  <meta property="og:title" content="BMW Alpina E38 B12 #132">
+  <meta property="og:description" content="Фото из канала @alpina_b12_132">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="">
+  <meta property="og:image" content="" id="ogImage">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:site_name" content="BMW Alpina E38 B12 #132">
+  
+  <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-
-  <!-- Редирект с учётом base path на GitHub Pages -->
+  <meta name="twitter:title" content="BMW Alpina E38 B12 #132">
+  <meta name="twitter:description" content="Фото из канала @alpina_b12_132">
+  <meta name="twitter:image" content="" id="twitterImage">
+  
+  <!-- Редирект на главную -->
   <meta http-equiv="refresh" content="0; url=./index.html">
 </head>
 <body>
   <script>
-    // берём id из hash
-    const id = location.hash.slice(1).split('?')[0];
-    // формируем прямую ссылку на thumb
-    const thumb = 'https://pub-3a115c1e9a8b4541b7685443d9eb4263.r2.dev/thumbs/' + id + '.jpg';
-    document.getElementById('ogImg').content = thumb;
-
-    // Идём на сайт с правильным путём
-    const basePath = location.pathname.includes('/preview.html') 
-      ? './index.html' 
-      : '/index.html';
-    location.replace(basePath + '#' + id);
+    // Получаем ID из URL
+    const hash = window.location.hash;
+    const id = hash ? hash.substring(1).split('?')[0] : '';
+    
+    if (id) {
+      // Формируем URL превью-картинки
+      const thumbUrl = 'https://pub-3a115c1e9a8b4541b7685443d9eb4263.r2.dev/thumbs/' + id + '.jpg';
+      const fullUrl = 'https://pub-3a115c1e9a8b4541b7685443d9eb4263.r2.dev/images/' + id + '.jpg';
+      
+      console.log('Preview for ID:', id);
+      console.log('Thumb URL:', thumbUrl);
+      
+      // Устанавливаем OG метатеги
+      document.getElementById('ogImage').content = thumbUrl;
+      document.getElementById('twitterImage').content = thumbUrl;
+      
+      // Устанавливаем URL страницы
+      document.querySelector('meta[property="og:url"]').content = window.location.href;
+      
+      // Редирект на основную галерею
+      setTimeout(() => {
+        const basePath = './index.html';
+        window.location.replace(basePath + hash);
+      }, 100);
+      
+    } else {
+      // Если нет ID, просто редирект
+      console.log('No ID found, redirecting to gallery');
+      window.location.replace('./index.html');
+    }
   </script>
+  
+  <noscript>
+    <p>Перенаправление на галерею... <a href="./index.html">Нажмите здесь, если редирект не сработал</a></p>
+  </noscript>
 </body>
 </html>
