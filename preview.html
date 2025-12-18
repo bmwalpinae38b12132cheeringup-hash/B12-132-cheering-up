@@ -3,14 +3,12 @@
 <head>
   <meta charset="utf-8">
   <title>Фото из канала</title>
-
-  <!-- Telegram сразе возьмёт эту картинку -->
   <meta id="ogImg" property="og:image" content="">
   <meta property="og:title" content="Фото из канала">
   <meta name="twitter:card" content="summary_large_image">
 
-  <!-- мгновенный редирект на сайт с нужным фото -->
-  <meta http-equiv="refresh" content="0; url=/index.html">
+  <!-- Редирект с учётом base path на GitHub Pages -->
+  <meta http-equiv="refresh" content="0; url=./index.html">
 </head>
 <body>
   <script>
@@ -20,8 +18,11 @@
     const thumb = 'https://pub-3a115c1e9a8b4541b7685443d9eb4263.r2.dev/thumbs/' + id + '.jpg';
     document.getElementById('ogImg').content = thumb;
 
-    // идём на сайт
-    location.replace('/index.html#' + id);
+    // Идём на сайт с правильным путём
+    const basePath = location.pathname.includes('/preview.html') 
+      ? './index.html' 
+      : '/index.html';
+    location.replace(basePath + '#' + id);
   </script>
 </body>
 </html>
