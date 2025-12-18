@@ -1,29 +1,170 @@
-
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8">
-  <title>Фото из канала</title>
-  <meta id="ogImg" property="og:image" content="">
-  <meta property="og:title" content="Фото из канала">
-  <meta name="twitter:card" content="summary_large_image">
-
-  <!-- Редирект с учётом base path на GitHub Pages -->
-  <meta http-equiv="refresh" content="0; url=./index.html">
+  <meta charset="utf-8"/>
+  <title>BMW Alpina E38 B12 #132 - Просмотр фото</title>
+  <meta property="og:title" content="BMW Alpina E38 B12 #132 - Фото из галереи" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="" />
+  <meta property="og:image" content="" />
+  <meta property="og:description" content="" />
+  <meta property="og:site_name" content="BMW Alpina E38 B12 #132 Gallery" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="BMW Alpina E38 B12 #132 - Фото из галереи" />
+  <meta name="twitter:description" content="" />
+  <meta name="twitter:image" content="" />
+  
+  <!-- Для Telegram -->
+  <meta property="twitter:image" content="">
+  <meta name="twitter:image:alt" content="Фото BMW Alpina E38 B12 #132">
+  
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #111;
+      color: #eee;
+      font-family: system-ui;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      text-align: center;
+    }
+    
+    .container {
+      max-width: 800px;
+      padding: 20px;
+    }
+    
+    h1 {
+      color: #0088cc;
+      margin-bottom: 20px;
+    }
+    
+    .image-container {
+      margin: 20px 0;
+    }
+    
+    .image-container img {
+      max-width: 100%;
+      max-height: 70vh;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    
+    .caption {
+      font-size: 18px;
+      margin: 20px 0;
+      color: #e051b6;
+    }
+    
+    .date {
+      color: #888;
+      font-size: 14px;
+      margin-bottom: 30px;
+    }
+    
+    .back-link {
+      display: inline-block;
+      padding: 10px 20px;
+      background: #0088cc;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      margin-top: 20px;
+      transition: background 0.3s;
+    }
+    
+    .back-link:hover {
+      background: #0066aa;
+    }
+    
+    .telegram-note {
+      color: #888;
+      font-size: 12px;
+      margin-top: 20px;
+    }
+  </style>
 </head>
 <body>
+  <div class="container">
+    <h1>BMW Alpina E38 B12 #132</h1>
+    <div class="image-container">
+      <img id="preview-image" src="" alt="Фото BMW Alpina">
+    </div>
+    <div class="caption" id="preview-caption"></div>
+    <div class="date" id="preview-date"></div>
+    
+    <a href="../index.html" class="back-link">← Вернуться в галерею</a>
+    
+    <div class="telegram-note">
+      * Откройте эту ссылку в браузере для просмотра в полном размере
+    </div>
+  </div>
+  
   <script>
-    // берём id из hash
-    const id = location.hash.slice(1).split('?')[0];
-    // формируем прямую ссылку на thumb
-    const thumb = 'https://pub-3a115c1e9a8b4541b7685443d9eb4263.r2.dev/thumbs/' + id + '.jpg';
-    document.getElementById('ogImg').content = thumb;
-
-    // Идём на сайт с правильным путём
-    const basePath = location.pathname.includes('/preview.html') 
-      ? './index.html' 
-      : '/index.html';
-    location.replace(basePath + '#' + id);
+    // Получаем ID из хэша URL
+    const id = window.location.hash.slice(1);
+    
+    // Если ID есть, загружаем данные
+    if (id) {
+      loadImageData(id);
+    } else {
+      // Если ID нет, показываем сообщение
+      document.querySelector('.container').innerHTML = `
+        <h1>Ошибка</h1>
+        <p>Изображение не найдено</p>
+        <a href="../index.html" class="back-link">← Вернуться в галерею</a>
+      `;
+    }
+    
+    async function loadImageData(imageId) {
+      try {
+        // Загружаем JSON с данными
+        const response = await fetch('../data/index.json');
+        const data = await response.json();
+        
+        // Находим нужное изображение
+        const image = data.find(item => item.id == imageId);
+        
+        if (image) {
+          const FULL_URL = 'https://pub-3a115c1e9a8b4541b7685443d9eb4263.r2.dev/images/';
+          
+          // Обновляем мета-теги для соцсетей
+          document.title = `BMW Alpina - ${image.caption || 'Фото'}`;
+          document.querySelector('meta[property="og:title"]').setAttribute('content', `BMW Alpina E38 B12 #132 - ${image.caption || 'Фото'}`);
+          document.querySelector('meta[property="og:url"]').setAttribute('content', window.location.href);
+          document.querySelector('meta[property="og:image"]').setAttribute('content', FULL_URL + image.file);
+          document.querySelector('meta[property="og:description"]').setAttribute('content', image.caption || 'Фото из галереи BMW Alpina E38 B12 #132');
+          
+          // Twitter/Telegram мета-теги
+          document.querySelector('meta[name="twitter:image"]').setAttribute('content', FULL_URL + image.file);
+          document.querySelector('meta[name="twitter:description"]').setAttribute('content', image.caption || 'Фото из галереи BMW Alpina E38 B12 #132');
+          document.querySelector('meta[property="twitter:image"]').setAttribute('content', FULL_URL + image.file);
+          
+          // Отображаем изображение на странице
+          document.getElementById('preview-image').src = FULL_URL + image.file;
+          document.getElementById('preview-caption').textContent = image.caption || '';
+          document.getElementById('preview-date').textContent = `Дата: ${image.date.slice(0, 10)}`;
+        } else {
+          // Если изображение не найдено
+          document.querySelector('.container').innerHTML = `
+            <h1>Ошибка</h1>
+            <p>Изображение с ID ${imageId} не найдено</p>
+            <a href="../index.html" class="back-link">← Вернуться в галерею</a>
+          `;
+        }
+      } catch (error) {
+        console.error('Ошибка загрузки данных:', error);
+        document.querySelector('.container').innerHTML = `
+          <h1>Ошибка</h1>
+          <p>Не удалось загрузить данные</p>
+          <a href="../index.html" class="back-link">← Вернуться в галерею</a>
+        `;
+      }
+    }
   </script>
 </body>
 </html>
