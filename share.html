@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>Фото из канала</title>
+
+  <!-- мгновенный редирект -->
+  <meta http-equiv="refresh" content="0; url=index.html">
+
+  <!-- превью для Telegram / WhatsApp / и т.д. -->
+  <meta property="og:title" content="Фото из канала">
+  <meta property="og:description" content="">
+  <meta property="og:image" content="">
+  <meta property="og:image:width" content="600">
+  <meta property="og:image:height" content="600">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <style>
+    body{background:#111;color:#eee;font-family:system-ui;text-align:center;padding-top:40vh}
+    a{color:#ffcc00}
+  </style>
+</head>
+<body>
+  Переход на галерею…<br>
+  Если не перешло автоматически, <a href="">нажмите сюда</a>.
+
+  <script>
+    (() => {
+      const p   = new URLSearchParams(location.search);
+      const img = p.get('img') || '';
+      const cap = p.get('cap') || 'Фото из канала';
+    
+      document.querySelector('meta[property="og:description"]').content = cap;
+      document.querySelector('meta[property="og:image"]').content       = img;
+    
+      // === важно: сохраняем hash, который уже есть в адресе
+      const target = 'index.html' + location.hash;   // #10?img=.... → #10
+      location.replace(target);
+    })();
+    </script>
+</body>
+</html>
