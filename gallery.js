@@ -1,7 +1,7 @@
-// gallery.js
+// gallery.js https://github.com/bmwalpinae38b12132cheeringup-hash/B12-132-cheering-up/releases/download/v1.0/images.zip
 const INDEX_URL = 'data/index.json';   // кладём рядом с index.html
-const THUMB_URL = 'https://github.com/USER/REPO/releases/download/v1.0/thumbs.zip/thumbs/';
-const FULL_URL  = 'https://github.com/USER/REPO/releases/download/v1.0/images.zip/images/';
+const THUMB_URL = 'https://github.com/bmwalpinae38b12132cheeringup-hash/B12-132-cheering-up/releases/download/v1.0/thumbs.zip';
+const FULL_URL  = 'https://github.com/bmwalpinae38b12132cheeringup-hash/B12-132-cheering-up/releases/download/v1.0/images.zip';
 
 let data, filtered, idx;   // idx – индекс текущего изображения в lightbox
 
