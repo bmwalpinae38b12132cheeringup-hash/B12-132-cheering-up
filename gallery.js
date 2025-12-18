@@ -188,11 +188,23 @@ function openBox(i) {
 
 const shareBtn = document.getElementById('lb-share');
 
+// Замените существующую функцию шаринга на эту:
 shareBtn.addEventListener('click', () => {
-    const rec  = filtered[idx];
-    const base = location.origin + location.pathname.slice(0, location.pathname.lastIndexOf('/') + 1);
-    const page = base + 'preview.html#' + rec.id;   // **только hash**, никаких ?img=…
-    window.location = 'https://t.me/share/url?url=' + encodeURIComponent(page);
+  const rec = filtered[idx];
+  
+  // Формируем URL страницы превью
+  const base = location.origin + location.pathname;
+  const galleryPath = base.substring(0, base.lastIndexOf('/') + 1);
+  const pageUrl = galleryPath + 'preview.html#' + rec.id;
+  
+  // Формируем текст для Telegram
+  const shareText = `${rec.caption || 'Фото BMW Alpina'} (${rec.date.slice(0, 10)})`;
+  
+  // Кодируем URL для Telegram
+  const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(pageUrl)}&text=${encodeURIComponent(shareText)}`;
+  
+  // Открываем в новом окне/вкладке
+  window.open(telegramUrl, '_blank', 'noopener,noreferrer');
 });
 
 // в gallery.js после объявления openBox() сфсфыс
@@ -250,3 +262,4 @@ document.addEventListener('mouseover', (e) => {
 });
 
 load();
+
