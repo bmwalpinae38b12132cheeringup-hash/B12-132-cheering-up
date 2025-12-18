@@ -188,37 +188,13 @@ function openBox(i) {
 
 const shareBtn = document.getElementById('lb-share');
 
-// Замените существующую функцию шаринга на эту:
 shareBtn.addEventListener('click', () => {
-  const rec = filtered[idx];
-  
-  // Определяем базовый путь в зависимости от структуры
-  const getBaseUrl = () => {
-    const path = window.location.pathname;
-    
-    // Для GitHub Pages в подпапке
-    if (path.includes('/B12-132-cheering-up/')) {
-      return `${window.location.origin}/B12-132-cheering-up/`;
-    }
-    
-    // Для локального тестирования
-    if (path.endsWith('index.html') || path.endsWith('/')) {
-      return `${window.location.origin}${path.substring(0, path.lastIndexOf('/') + 1)}`;
-    }
-    
-    return `${window.location.origin}/`;
-  };
-  
-  const baseUrl = getBaseUrl();
-  const pageUrl = `${baseUrl}preview.html#${rec.id}`;
-  const shareText = `${rec.caption || 'Фото BMW Alpina'} (${rec.date.slice(0, 10)})`;
-  
-  // Формируем URL для Telegram
-  const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(pageUrl)}&text=${encodeURIComponent(shareText)}`;
-  
-  // Открываем в новом окне
-  window.open(telegramUrl, '_blank', 'noopener,noreferrer,width=600,height=400');
+    const rec  = filtered[idx];
+    const base = location.origin + location.pathname.slice(0, location.pathname.lastIndexOf('/') + 1);
+    const page = base + 'preview.html#' + rec.id;   // **только hash**, никаких ?img=…
+    window.location = 'https://t.me/share/url?url=' + encodeURIComponent(page);
 });
+
 // в gallery.js после объявления openBox() сфсфыс
 const lb = document.getElementById('lightbox');
 
@@ -274,5 +250,3 @@ document.addEventListener('mouseover', (e) => {
 });
 
 load();
-
-
