@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"/>
+  <title>Channel Gallery</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+  <h1>Gallery <span id="counter"></span></h1>
+  <input id="search" type="text" placeholder="поиск по описанию или дате"/>
+  <div id="grid"></div>
+  <div id="lightbox" class="hidden">
+    <img id="lb-img" src="" alt=""/>
+    <div id="lb-caption"></div>
+    <button id="lb-close">×</button>
+    <button id="lb-prev">‹</button>
+    <button id="lb-next">›</button>
+  </div>
+  <script type="module" src="gallery.js"></script>
+</body>
+</html>
