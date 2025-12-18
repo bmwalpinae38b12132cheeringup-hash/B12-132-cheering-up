@@ -1,259 +1,29 @@
+
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8"/>
-  <title>BMW Alpina E38 B12 #132 - Просмотр фото</title>
-  <meta property="og:title" content="BMW Alpina E38 B12 #132 - Фото из галереи" />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="" />
-  <meta property="og:image" content="" />
-  <meta property="og:description" content="" />
-  <meta property="og:site_name" content="BMW Alpina E38 B12 #132 Gallery" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="BMW Alpina E38 B12 #132 - Фото из галереи" />
-  <meta name="twitter:description" content="" />
-  <meta name="twitter:image" content="" />
-  
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      background: #111;
-      color: #eee;
-      font-family: system-ui;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      text-align: center;
-    }
-    
-    .container {
-      max-width: 800px;
-      padding: 20px;
-    }
-    
-    h1 {
-      color: #0088cc;
-      margin-bottom: 20px;
-    }
-    
-    .image-container {
-      margin: 20px 0;
-    }
-    
-    .image-container img {
-      max-width: 100%;
-      max-height: 70vh;
-      border-radius: 8px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-    }
-    
-    .caption {
-      font-size: 18px;
-      margin: 20px 0;
-      color: #e051b6;
-    }
-    
-    .date {
-      color: #888;
-      font-size: 14px;
-      margin-bottom: 30px;
-    }
-    
-    .back-link {
-      display: inline-block;
-      padding: 10px 20px;
-      background: #0088cc;
-      color: white;
-      text-decoration: none;
-      border-radius: 4px;
-      margin-top: 20px;
-      transition: background 0.3s;
-    }
-    
-    .back-link:hover {
-      background: #0066aa;
-    }
-    
-    .telegram-note {
-      color: #888;
-      font-size: 12px;
-      margin-top: 20px;
-    }
-    
-    .loading {
-      color: #888;
-      font-size: 16px;
-    }
-  </style>
+  <meta charset="utf-8">
+  <title>Фото из канала</title>
+  <meta id="ogImg" property="og:image" content="">
+  <meta property="og:title" content="Фото из канала">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!-- Редирект с учётом base path на GitHub Pages -->
+  <meta http-equiv="refresh" content="0; url=./index.html">
 </head>
 <body>
-  <div class="container">
-    <h1>BMW Alpina E38 B12 #132</h1>
-    <div id="content">
-      <div class="loading">Загрузка изображения...</div>
-    </div>
-  </div>
-  
   <script>
-    // Функция для определения базового пути
-    function getBasePath() {
-      // Получаем текущий путь к странице
-      const path = window.location.pathname;
-      
-      // Если мы на GitHub Pages в подпапке проекта
-      if (path.includes('/B12-132-cheering-up/')) {
-        return '/B12-132-cheering-up/';
-      }
-      
-      // Для локального тестирования
-      if (path.endsWith('preview.html')) {
-        return './';
-      }
-      
-      // По умолчанию корневой путь
-      return '/';
-    }
-    
-    // Получаем ID из хэша URL
-    function getIdFromHash() {
-      const hash = window.location.hash;
-      if (hash && hash.startsWith('#')) {
-        return hash.substring(1);
-      }
-      return null;
-    }
-    
-    // Загружаем данные изображения
-    async function loadImageData() {
-      const imageId = getIdFromHash();
-      const basePath = getBasePath();
-      
-      if (!imageId) {
-        showError('ID изображения не указан в URL');
-        return;
-      }
-      
-      try {
-        // Путь к данным в зависимости от структуры проекта
-        let dataPath;
-        if (basePath === '/B12-132-cheering-up/') {
-          dataPath = '/B12-132-cheering-up/data/index.json';
-        } else {
-          dataPath = './data/index.json';
-        }
-        
-        // Загружаем JSON с данными
-        const response = await fetch(dataPath);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        // Находим нужное изображение
-        const image = data.find(item => item.id == imageId || item.id.toString() === imageId);
-        
-        if (image) {
-          const FULL_URL = 'https://pub-3a115c1e9a8b4541b7685443d9eb4263.r2.dev/images/';
-          const imageUrl = FULL_URL + image.file;
-          
-          // Обновляем мета-теги для соцсетей
-          updateMetaTags(image, imageUrl);
-          
-          // Отображаем изображение на странице
-          displayImage(image, imageUrl, basePath);
-        } else {
-          showError(`Изображение с ID "${imageId}" не найдено`);
-        }
-      } catch (error) {
-        console.error('Ошибка загрузки данных:', error);
-        showError(`Не удалось загрузить данные: ${error.message}`);
-      }
-    }
-    
-    // Обновляем Open Graph и Twitter мета-теги
-    function updateMetaTags(image, imageUrl) {
-      const pageUrl = window.location.href;
-      const title = `BMW Alpina E38 B12 #132 - ${image.caption || 'Фото'}`;
-      const description = image.caption || 'Фото из галереи BMW Alpina E38 B12 #132';
-      
-      // Основные Open Graph теги
-      document.title = title;
-      
-      const metaTags = [
-        { property: 'og:title', content: title },
-        { property: 'og:type', content: 'website' },
-        { property: 'og:url', content: pageUrl },
-        { property: 'og:image', content: imageUrl },
-        { property: 'og:description', content: description },
-        { property: 'og:site_name', content: 'BMW Alpina E38 B12 #132 Gallery' },
-        
-        // Twitter/Telegram теги
-        { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:title', content: title },
-        { name: 'twitter:description', content: description },
-        { name: 'twitter:image', content: imageUrl },
-        { property: 'twitter:image', content: imageUrl },
-        { name: 'twitter:image:alt', content: description }
-      ];
-      
-      metaTags.forEach(tag => {
-        const selector = tag.property 
-          ? `meta[property="${tag.property}"]` 
-          : `meta[name="${tag.name}"]`;
-        
-        let meta = document.querySelector(selector);
-        if (!meta) {
-          meta = document.createElement('meta');
-          if (tag.property) {
-            meta.setAttribute('property', tag.property);
-          } else {
-            meta.setAttribute('name', tag.name);
-          }
-          document.head.appendChild(meta);
-        }
-        meta.setAttribute('content', tag.content);
-      });
-    }
-    
-    // Отображаем изображение на странице
-    function displayImage(image, imageUrl, basePath) {
-      const contentDiv = document.getElementById('content');
-      const imageDate = image.date ? image.date.slice(0, 10) : 'Неизвестно';
-      
-      contentDiv.innerHTML = `
-        <div class="image-container">
-          <img src="${imageUrl}" alt="${image.caption || 'Фото BMW Alpina'}" 
-               onerror="this.onerror=null; this.src='${basePath}placeholder.jpg';">
-        </div>
-        <div class="caption">${image.caption || ''}</div>
-        <div class="date">Дата: ${imageDate}</div>
-        
-        <a href="${basePath}index.html" class="back-link">← Вернуться в галерею</a>
-        
-        <div class="telegram-note">
-          * Откройте эту ссылку в браузере для просмотра в полном размере
-        </div>
-      `;
-    }
-    
-    // Показываем ошибку
-    function showError(message) {
-      const contentDiv = document.getElementById('content');
-      contentDiv.innerHTML = `
-        <div style="color: #ff6b6b; margin: 20px 0;">
-          <h3>Ошибка</h3>
-          <p>${message}</p>
-        </div>
-        <a href="${getBasePath()}index.html" class="back-link">← Вернуться в галерею</a>
-      `;
-    }
-    
-    // Запускаем загрузку при готовности DOM
-    document.addEventListener('DOMContentLoaded', loadImageData);
+    // берём id из hash
+    const id = location.hash.slice(1).split('?')[0];
+    // формируем прямую ссылку на thumb
+    const thumb = 'https://pub-3a115c1e9a8b4541b7685443d9eb4263.r2.dev/thumbs/' + id + '.jpg';
+    document.getElementById('ogImg').content = thumb;
+
+    // Идём на сайт с правильным путём
+    const basePath = location.pathname.includes('/preview.html') 
+      ? './index.html' 
+      : '/index.html';
+    location.replace(basePath + '#' + id);
   </script>
 </body>
 </html>
