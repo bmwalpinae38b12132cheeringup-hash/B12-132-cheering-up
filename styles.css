@@ -57,3 +57,32 @@ body{font-family:system-ui;background:#111;color:#eee;margin:0}
     cursor: pointer;
   }
   #lb-share:hover { background: #0066aa; }
+
+  /* Простой вариант */
+.channel-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: #0088cc;
+    padding: 4px 0;
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s ease;
+  }
+  
+  .channel-link:hover {
+    color: #005580;
+    border-bottom-color: #0088cc;
+  }
+  
+  .tg-icon {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+  }
+  
+  #counter {
+    margin-left: 10px;
+    color: #666;
+    font-weight: normal;
+  }
