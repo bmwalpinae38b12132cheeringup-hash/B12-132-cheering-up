@@ -9,3 +9,51 @@ body{font-family:system-ui;background:#111;color:#eee;margin:0}
 #lb-close{top:10px;right:20px}
 #lb-prev{left:20px}
 #lb-next{right:20px}
+/* контейнер превью */
+.thumb-box {
+    min-height: 150px;          /* когда текста нет */
+  height: max(150px, calc(100% - 0px)); /* растягивается под контент */
+  grid-row-end: span auto;    /* masonry-сетка сама подберёт высоту строки */
+    position: relative;
+    width: 100%;               /* задаёт grid-column */
+    background-size: cover;    /* фон = картинка */
+    background-position: center;
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end; /* текст прижат к низу */
+  }
+  
+  .thumb-text {
+    /* современный стандарт */
+    line-clamp: 3;
+    box-orient: block;
+  
+    /* старые движки → fallback */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  
+    /* оформление */
+    
+    color: #e051b6;        /* ярко-жёлтый – замените на нужный */
+    font-size: 12px;
+    line-height: 1.35;
+    padding: 6px 8px;
+    word-break: break-word;
+  }
+
+  #lb-share {
+    margin-top: 12px;
+    padding: 8px 16px;
+    background: #0088cc;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  #lb-share:hover { background: #0066aa; }
