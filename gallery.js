@@ -1,7 +1,7 @@
 // gallery.js
 const INDEX_URL = 'data/index.json';
-const THUMB_BASE = 'https://pub-3a115c1e9a8b4541b7685443d9eb4263.r2.dev/';
-const FULL_BASE = 'https://pub-3a115c1e9a8b4541b7685443d9eb4263.r2.dev/';
+const THUMB_URL = 'https://pub-3a115c1e9a8b4541b7685443d9eb4263.r2.dev/thumbs/';
+const FULL_URL  = 'https://pub-3a115c1e9a8b4541b7685443d9eb4263.r2.dev/images/';
 
 let data, filtered, idx;
 
@@ -10,25 +10,14 @@ async function load() {
     filtered = data;
     render();
   
-    const hash = location.hash.slice(1);
-    const wanted = hash.split('?')[0]; // "#10?img=..." → "10"
-    
-    console.log('Hash from URL:', hash);
-    console.log('Wanted ID:', wanted);
-    
+    const wanted = location.hash.slice(1).split('?')[0]; // "#10?img=..." → "10"
     if (wanted) {
-      // Ищем запись по ID (как число или строка)
-      const i = filtered.findIndex(r => r.id == wanted || r.id.toString() === wanted);
-      console.log('Found index:', i);
-      
-      if (i !== -1) {
-        // НЕМНОЖКО ЖДЁМ чтобы страница загрузилась
-        setTimeout(() => openBox(i), 300);
-      }
+      const i = filtered.findIndex(r => r.id == wanted);
+      if (i !== -1) openBox(i);
     }
   
     document.getElementById('search').addEventListener('input', onSearch);
-}
+  }
 
 function render() {
   const grid = document.getElementById('grid');
@@ -36,7 +25,7 @@ function render() {
   filtered.forEach((rec, i) => {
     const box = document.createElement('div');
     box.className = 'thumb-box';
-    box.style.backgroundImage = `url(${THUMB_BASE + rec.thumb})`;
+    box.style.backgroundImage = `url(${THUMB_URL + rec.file})`;
 
     const txt = document.createElement('div');
     txt.className = 'thumb-text';
@@ -58,37 +47,23 @@ function onSearch(e) {
 function openBox(i) {
     idx = i;
     const rec = filtered[idx];
-    
-    console.log('Opening box:', i, 'ID:', rec.id);
-    
-    // Обновляем хэш
+  
+    // ставим хэш
     history.replaceState(null, null, '#' + rec.id);
-    
-    // Устанавливаем картинку и описание
-    document.getElementById('lb-img').src = FULL_BASE + rec.full;
+  
+    document.getElementById('lb-img').src   = FULL_URL + rec.file;
     document.getElementById('lb-caption').textContent = rec.caption + ' (' + rec.date.slice(0,10) + ')';
-    
-    // Показываем лайтбокс
     document.getElementById('lightbox').classList.remove('hidden');
-    
-    // Прокручиваем к началу страницы для мобильных
-    window.scrollTo(0, 0);
-}
+  }
 
   const shareBtn = document.getElementById('lb-share');
 
-shareBtn.addEventListener('click', () => {
-  const rec = filtered[idx];
-  
-  // ПРОСТОЙ URL без сложной логики
-  const currentUrl = window.location.origin + window.location.pathname;
-  const previewUrl = currentUrl.replace('index.html', 'preview.html') + '#' + rec.id;
-  
-  console.log('Sharing:', previewUrl);
-  
-  // Простой share в Telegram
-  window.open('https://t.me/share/url?url=' + encodeURIComponent(previewUrl), '_blank');
-});
+  shareBtn.addEventListener('click', () => {
+    const rec  = filtered[idx];
+    const base = location.origin + location.pathname.slice(0, location.pathname.lastIndexOf('/') + 1);
+    const page = base + 'preview.html#' + rec.id;   // **только hash**, никаких ?img=…
+    window.location = 'https://t.me/share/url?url=' + encodeURIComponent(page);
+  });
 
 // в gallery.js после объявления openBox() сфсфыс
 const lb = document.getElementById('lightbox');
@@ -104,6 +79,3 @@ document.getElementById('lb-prev').onclick  = () => { idx = (idx - 1 + filtered.
 document.getElementById('lb-next').onclick  = () => { idx = (idx + 1) % filtered.length; openBox(idx); };
 
 load();
-
-
-
