@@ -58,12 +58,22 @@ function openBox(i) {
 
   const shareBtn = document.getElementById('lb-share');
 
-  shareBtn.addEventListener('click', () => {
-    const rec  = filtered[idx];
-    const base = location.origin + location.pathname.slice(0, location.pathname.lastIndexOf('/') + 1);
-    const page = base + 'preview.html#' + rec.id;   // **только hash**, никаких ?img=…
-    window.location = 'https://t.me/share/url?url=' + encodeURIComponent(page);
-  });
+shareBtn.addEventListener('click', () => {
+  const rec = filtered[idx];
+  
+  // Формируем полный URL для превью
+  const currentUrl = new URL(window.location.href);
+  const baseUrl = currentUrl.origin + currentUrl.pathname;
+  const previewUrl = baseUrl.replace(/index\.html$/, '') + 'preview.html#' + rec.id;
+  
+  console.log('Sharing URL:', previewUrl);
+  
+  // Открываем Telegram Share с текстом
+  const shareText = encodeURIComponent('Посмотри это фото из канала BMW Alpina E38 B12 #132:');
+  const fullUrl = `https://t.me/share/url?url=${encodeURIComponent(previewUrl)}&text=${shareText}`;
+  
+  window.open(fullUrl, '_blank', 'width=550,height=400');
+});
 
 // в gallery.js после объявления openBox() сфсфыс
 const lb = document.getElementById('lightbox');
@@ -79,3 +89,4 @@ document.getElementById('lb-prev').onclick  = () => { idx = (idx - 1 + filtered.
 document.getElementById('lb-next').onclick  = () => { idx = (idx + 1) % filtered.length; openBox(idx); };
 
 load();
+
