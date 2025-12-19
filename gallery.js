@@ -240,6 +240,7 @@ function preloadImages(start, count) {
 
 // Функция перехода на +500 изображений
 // Функция перехода на +500 изображений
+// Функция перехода на +500 изображений
 function jumpForward() {
   console.log('=== jumpForward вызван ===');
   console.log('Текущий visibleItems:', visibleItems);
@@ -252,9 +253,10 @@ function jumpForward() {
   
   const jumpAmount = 500;
   const targetIndex = Math.min(visibleItems + jumpAmount, filtered.length);
-  const scrollToIndex = visibleItems; // Прокручиваем к началу новых элементов
   
-  console.log(`Целевой индекс: ${targetIndex}, прокрутка к: ${scrollToIndex}`);
+  // Сохраняем начальный индекс ДО увеличения visibleItems
+  const startOfJump = visibleItems;
+  console.log(`Целевой индекс: ${targetIndex}, начало прыжка: ${startOfJump}`);
   
   // Очищаем текущий observer
   if (observer) {
@@ -283,30 +285,56 @@ function jumpForward() {
   // Сначала предзагружаем важные изображения ДО инициализации observer
   console.log('Начинаем предзагрузку изображений для новых чанков...');
   
-  // 1. Предзагружаем первые элементы нового чанка (куда прыгаем)
-  const startOfNewChunk = scrollToIndex;
+  // 1. Предзагружаем начало нового чанка (самые важные - первые элементы)
+  const chunkSize = 500;
+  const currentChunk = Math.floor(startOfJump / chunkSize);
+  const nextChunkStart = (currentChunk + 1) * chunkSize;
   
-  // Используем микротаск для предзагрузки
+  // Предзагружаем первые элементы нового чанка
+  const preloadStart = nextChunkStart;
+  const preloadEnd = Math.min(preloadStart + PRELOAD_CHUNK_SIZE, visibleItems);
+  
+  // Также предзагружаем начало текущего чанка для навигации назад
+  const currentChunkStart = currentChunk * chunkSize;
+  
   Promise.resolve().then(() => {
-    // Сначала предзагружаем изображения, которые будут в viewport после прокрутки
-    preloadImages(startOfNewChunk, PRELOAD_CHUNK_SIZE);
+    console.log(`Предзагрузка нового чанка: ${preloadStart}-${preloadEnd}`);
+    preloadImages(preloadStart, PRELOAD_CHUNK_SIZE);
     
-    // Затем предзагружаем первые элементы предыдущих чанков
-    for (let chunkStart = 0; chunkStart < startOfNewChunk; chunkStart += 500) {
-      preloadImages(chunkStart, Math.min(PRELOAD_CHUNK_SIZE, 10));
+    // Предзагружаем начала всех предыдущих чанков
+    for (let chunk = 0; chunk <= currentChunk; chunk++) {
+      const chunkStart = chunk * chunkSize;
+      if (chunkStart < visibleItems) {
+        console.log(`Предзагрузка начала чанка ${chunk}: ${chunkStart}`);
+        preloadImages(chunkStart, Math.min(10, PRELOAD_CHUNK_SIZE));
+      }
     }
     
     // Инициализируем ленивую загрузку ПОСЛЕ предзагрузки
     initLazyLoad();
     
-    // Прокручиваем к началу новых элементов (к элементу, с которого начался скачок)
-    console.log(`Прокрутка к элементу ${scrollToIndex}...`);
+    // Прокручиваем к началу нового чанка (или к началу прыжка, если это лучше)
+    let scrollToIndex;
+    
+    if (startOfJump === 0) {
+      // Первый прыжок: прокручиваем к началу нового чанка
+      scrollToIndex = nextChunkStart;
+    } else {
+      // Последующие прыжки: прокручиваем к началу нового чанка или к началу прыжка
+      scrollToIndex = nextChunkStart;
+    }
+    
+    // Убедимся, что индекс в пределах видимых элементов
+    scrollToIndex = Math.min(scrollToIndex, visibleItems - 1);
+    scrollToIndex = Math.max(0, scrollToIndex);
+    
+    console.log(`Прокрутка к элементу ${scrollToIndex} (начало нового чанка)...`);
     
     // Даем браузеру немного времени на обработку
     requestAnimationFrame(() => {
       const targetElement = document.getElementById(`thumb-${scrollToIndex}`);
       if (targetElement) {
-        console.log(`Элемент для прокрутки найден, выполняем прокрутку`);
+        console.log(`Элемент для прокрутки найден, выполняем прокрутку к thumb-${scrollToIndex}`);
         targetElement.scrollIntoView({ 
           behavior: 'smooth', 
           block: 'start' 
@@ -436,4 +464,5 @@ document.addEventListener('mouseover', (e) => {
 });
 
 load();
+
 
