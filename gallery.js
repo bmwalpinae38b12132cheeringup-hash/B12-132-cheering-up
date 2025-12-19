@@ -5,6 +5,7 @@ const FULL_URL  = 'https://pub-3a115c1e9a8b4541b7685443d9eb4263.r2.dev/images/';
 // Настройки ленивой загрузки
 const ITEMS_PER_PAGE = 30; // Сколько элементов загружать за раз
 const LOAD_MARGIN = 200;   // Загружать элементы за 200px до появления в viewport
+const PRELOAD_CHUNK_SIZE = 30; // Сколько элементов предзагружать из каждого нового чанка
 
 let data, filtered, idx;
 let visibleItems = 0;
@@ -12,7 +13,9 @@ let isLoading = false;
 let observer = null;
 
 async function load() {
+    console.log('Начало загрузки данных...');
     data = await fetch(INDEX_URL).then(r => r.json());
+    console.log(`Загружено ${data.length} записей`);
     filtered = data;
     renderInitial();
   
@@ -29,11 +32,13 @@ async function load() {
 }
 
 function renderInitial() {
+  console.log('renderInitial вызван, filtered.length =', filtered.length);
   const grid = document.getElementById('grid');
   grid.innerHTML = '';
   
   // Создаем контейнеры для первых ITEMS_PER_PAGE элементов
   visibleItems = Math.min(ITEMS_PER_PAGE, filtered.length);
+  console.log('visibleItems установлен в', visibleItems);
   
   for (let i = 0; i < visibleItems; i++) {
     createThumbBox(i);
@@ -49,6 +54,9 @@ function renderInitial() {
   
   // Инициализируем Intersection Observer для ленивой загрузки
   initLazyLoad();
+  
+  // Предзагружаем первые изображения немедленно
+  preloadImages(0, Math.min(PRELOAD_CHUNK_SIZE, visibleItems));
 }
 
 // Создание элемента миниатюры
@@ -59,6 +67,7 @@ function createThumbBox(i) {
   const box = document.createElement('div');
   box.className = 'thumb-box';
   box.dataset.index = i;
+  box.id = `thumb-${i}`; // Добавляем ID для прокрутки
   
   // Плейсхолдер
   const placeholder = document.createElement('div');
@@ -87,26 +96,35 @@ function createThumbBox(i) {
 
 // Инициализация ленивой загрузки
 function initLazyLoad() {
+  console.log('Инициализация ленивой загрузки...');
   observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         const box = entry.target;
+        const index = parseInt(box.dataset.index, 10);
         const img = box.querySelector('.thumb-image');
         const src = img.dataset.src;
         
+        console.log(`Элемент ${index} вошел в viewport`);
+        
         // Загружаем изображение
         if (src && !img.classList.contains('loaded')) {
+          console.log(`Начинаем загрузку изображения для элемента ${index}`);
           const imageLoader = new Image();
           imageLoader.src = src;
           imageLoader.onload = () => {
             img.src = src;
             img.classList.add('loaded');
+            console.log(`Изображение для элемента ${index} загружено`);
+          };
+          imageLoader.onerror = () => {
+            console.error(`Ошибка загрузки изображения для элемента ${index}: ${src}`);
           };
         }
         
         // Проверяем, нужно ли подгрузить новые элементы
-        const index = parseInt(box.dataset.index, 10);
         if (index >= visibleItems - 5 && !isLoading && visibleItems < filtered.length) {
+          console.log(`Триггер подгрузки новых элементов, индекс: ${index}, видимых: ${visibleItems}`);
           loadMoreItems();
         }
       }
@@ -120,6 +138,7 @@ function initLazyLoad() {
   document.querySelectorAll('.thumb-box').forEach(box => {
     observer.observe(box);
   });
+  console.log(`Наблюдение начато для ${document.querySelectorAll('.thumb-box').length} элементов`);
 }
 
 // Подгрузка дополнительных элементов
@@ -127,16 +146,19 @@ function loadMoreItems() {
   if (isLoading || visibleItems >= filtered.length) return;
   
   isLoading = true;
+  console.log(`Начало загрузки дополнительных элементов, текущий visibleItems: ${visibleItems}`);
   
   // Показываем индикатор загрузки
   const loadingEl = document.getElementById('loading');
   loadingEl.classList.remove('hidden');
   
-  // Имитация задержки для плавности
-  setTimeout(() => {
+  // Используем requestAnimationFrame для лучшей производительности
+  requestAnimationFrame(() => {
     const grid = document.getElementById('grid');
     const startIndex = visibleItems;
     const endIndex = Math.min(visibleItems + ITEMS_PER_PAGE, filtered.length);
+    
+    console.log(`Добавление элементов с ${startIndex} по ${endIndex}`);
     
     for (let i = startIndex; i < endIndex; i++) {
       createThumbBox(i);
@@ -158,45 +180,19 @@ function loadMoreItems() {
     // Обновляем счетчик
     document.getElementById('counter').textContent = `(${visibleItems}/${filtered.length})`;
     
-  }, 300);
+    console.log(`Загрузка завершена, новый visibleItems: ${visibleItems}`);
+    
+  });
 }
 
-// Функция перехода на +500 изображений
-// Функция перехода на +500 изображений
-// Функция перехода на +500 изображений
-function jumpForward() {
-  if (visibleItems >= filtered.length) return;
+// Предзагрузка изображений из указанного диапазона
+function preloadImages(start, count) {
+  console.log(`Предзагрузка изображений с ${start} по ${start + count - 1}`);
+  const end = Math.min(start + count, visibleItems);
   
-  const jumpAmount = 500;
-  const targetIndex = Math.min(visibleItems + jumpAmount, filtered.length);
-  
-  // Очищаем текущий observer
-  if (observer) {
-    observer.disconnect();
-  }
-  
-  // Очищаем сетку
-  const grid = document.getElementById('grid');
-  grid.innerHTML = '';
-  
-  // Устанавливаем новые видимые элементы
-  visibleItems = Math.min(targetIndex, filtered.length);
-  
-  // Создаем контейнеры для видимых элементов
-  for (let i = 0; i < visibleItems; i++) {
-    createThumbBox(i);
-  }
-  
-  // Обновляем счетчик
-  document.getElementById('counter').textContent = `(${visibleItems}/${filtered.length})`;
-  
-  // Инициализируем ленивую загрузку
-  initLazyLoad();
-  
-  // НАЧИНАЕМ ЗАГРУЗКУ ПЕРВЫХ ИЗОБРАЖЕНИЙ СРАЗУ (первые 30)
-  setTimeout(() => {
-    const firstImages = Array.from(document.querySelectorAll('.thumb-image')).slice(0, 30);
-    firstImages.forEach(img => {
+  for (let i = start; i < end; i++) {
+    const img = document.querySelector(`#thumb-${i} .thumb-image`);
+    if (img) {
       const src = img.dataset.src;
       if (src && !img.classList.contains('loaded')) {
         const imageLoader = new Image();
@@ -205,9 +201,67 @@ function jumpForward() {
           img.src = src;
           img.classList.add('loaded');
         };
+        imageLoader.onerror = () => {
+          console.error(`Ошибка предзагрузки изображения для элемента ${i}`);
+        };
       }
-    });
-  }, 50);
+    }
+  }
+}
+
+// Функция перехода на +500 изображений
+function jumpForward() {
+  console.log('=== jumpForward вызван ===');
+  console.log('Текущий visibleItems:', visibleItems);
+  console.log('Всего элементов:', filtered.length);
+  
+  if (visibleItems >= filtered.length) {
+    console.log('Все элементы уже загружены, выход');
+    return;
+  }
+  
+  const jumpAmount = 500;
+  const targetIndex = Math.min(visibleItems + jumpAmount, filtered.length);
+  const scrollToIndex = visibleItems; // Прокручиваем к началу новых элементов
+  
+  console.log(`Целевой индекс: ${targetIndex}, прокрутка к: ${scrollToIndex}`);
+  
+  // Очищаем текущий observer
+  if (observer) {
+    observer.disconnect();
+    console.log('Observer отключен');
+  }
+  
+  // Очищаем сетку
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  console.log('Сетка очищена');
+  
+  // Устанавливаем новые видимые элементы
+  visibleItems = Math.min(targetIndex, filtered.length);
+  console.log(`Новый visibleItems: ${visibleItems}`);
+  
+  // Создаем контейнеры для видимых элементов
+  for (let i = 0; i < visibleItems; i++) {
+    createThumbBox(i);
+  }
+  console.log(`Создано ${visibleItems} элементов`);
+  
+  // Обновляем счетчик
+  document.getElementById('counter').textContent = `(${visibleItems}/${filtered.length})`;
+  
+  // Инициализируем ленивую загрузку
+  initLazyLoad();
+  
+  // Предзагружаем первые элементы каждого нового чанка по 500
+  console.log('Начинаем предзагрузку изображений для новых чанков...');
+  const startOfNewChunk = scrollToIndex;
+  preloadImages(startOfNewChunk, PRELOAD_CHUNK_SIZE);
+  
+  // Также предзагружаем первые элементы предыдущих чанков (для навигации назад)
+  for (let chunkStart = 0; chunkStart < startOfNewChunk; chunkStart += 500) {
+    preloadImages(chunkStart, Math.min(PRELOAD_CHUNK_SIZE, 30));
+  }
   
   // Если все еще есть элементы для загрузки, показываем индикатор
   if (visibleItems < filtered.length) {
@@ -221,14 +275,29 @@ function jumpForward() {
     document.getElementById('jump-500').style.display = 'none';
   }
   
-  // Прокручиваем к началу страницы
+  // Прокручиваем к началу новых элементов (к элементу, с которого начался скачок)
+  console.log(`Прокрутка к элементу ${scrollToIndex}...`);
   setTimeout(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, 100);
+    const targetElement = document.getElementById(`thumb-${scrollToIndex}`);
+    if (targetElement) {
+      console.log(`Элемент для прокрутки найден, выполняем прокрутку`);
+      targetElement.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start' 
+      });
+    } else {
+      console.warn(`Элемент thumb-${scrollToIndex} не найден, прокручиваем вверх`);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, 100); // Небольшая задержка для гарантии отрисовки DOM
 }
+
 function onSearch(e) {
+  console.log('Поиск:', e.target.value);
   const q = e.target.value.toLowerCase();
   filtered = data.filter(r => r.caption.toLowerCase().includes(q) || r.date.includes(q));
+  
+  console.log(`Найдено ${filtered.length} элементов`);
   
   // Сбрасываем видимые элементы
   visibleItems = 0;
@@ -240,9 +309,18 @@ function onSearch(e) {
   
   // Перерисовываем
   renderInitial();
+  
+  // Скрываем/показываем кнопку +500 в зависимости от результатов поиска
+  const jumpBtn = document.getElementById('jump-500');
+  if (filtered.length <= ITEMS_PER_PAGE) {
+    jumpBtn.style.display = 'none';
+  } else {
+    jumpBtn.style.display = 'block';
+  }
 }
 
 function openBox(i) {
+    console.log(`Открытие лайтбокса для элемента ${i}`);
     idx = i;
     const rec = filtered[idx];
   
@@ -257,6 +335,7 @@ function openBox(i) {
 const shareBtn = document.getElementById('lb-share');
 
 shareBtn.addEventListener('click', () => {
+    console.log('Поделиться в Telegram');
     const rec  = filtered[idx];
     const base = location.origin + location.pathname.slice(0, location.pathname.lastIndexOf('/') + 1);
     const page = base + 'preview.html#' + rec.id;   // **только hash**, никаких ?img=…
@@ -318,6 +397,3 @@ document.addEventListener('mouseover', (e) => {
 });
 
 load();
-
-
-
