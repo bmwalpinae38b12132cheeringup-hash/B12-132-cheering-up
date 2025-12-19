@@ -95,6 +95,7 @@ function createThumbBox(i) {
 }
 
 // Инициализация ленивой загрузки
+// Также обновим функцию initLazyLoad для обычного случая
 function initLazyLoad() {
   console.log('Инициализация ленивой загрузки...');
   observer = new IntersectionObserver((entries) => {
@@ -105,26 +106,13 @@ function initLazyLoad() {
         const img = box.querySelector('.thumb-image');
         const src = img.dataset.src;
         
-        console.log(`Элемент ${index} вошел в viewport`);
-        
-        // Загружаем изображение
         if (src && !img.classList.contains('loaded')) {
-          console.log(`Начинаем загрузку изображения для элемента ${index}`);
-          const imageLoader = new Image();
-          imageLoader.src = src;
-          imageLoader.onload = () => {
-            img.src = src;
-            img.classList.add('loaded');
-            console.log(`Изображение для элемента ${index} загружено`);
-          };
-          imageLoader.onerror = () => {
-            console.error(`Ошибка загрузки изображения для элемента ${index}: ${src}`);
-          };
+          console.log(`Загрузка изображения для элемента ${index}`);
+          loadImageWithPriority(img, src, 'medium');
         }
         
         // Проверяем, нужно ли подгрузить новые элементы
         if (index >= visibleItems - 5 && !isLoading && visibleItems < filtered.length) {
-          console.log(`Триггер подгрузки новых элементов, индекс: ${index}, видимых: ${visibleItems}`);
           loadMoreItems();
         }
       }
@@ -241,6 +229,7 @@ function preloadImages(start, count) {
 // Функция перехода на +500 изображений
 // Функция перехода на +500 изображений
 // Функция перехода на +500 изображений
+// Функция перехода на +500 изображений
 function jumpForward() {
   console.log('=== jumpForward вызван ===');
   console.log('Текущий visibleItems:', visibleItems);
@@ -282,69 +271,65 @@ function jumpForward() {
   // Обновляем счетчик
   document.getElementById('counter').textContent = `(${visibleItems}/${filtered.length})`;
   
-  // Сначала предзагружаем важные изображения ДО инициализации observer
-  console.log('Начинаем предзагрузку изображений для новых чанков...');
-  
-  // 1. Предзагружаем начало нового чанка (самые важные - первые элементы)
+  // Вычисляем границы чанков
   const chunkSize = 500;
   const currentChunk = Math.floor(startOfJump / chunkSize);
   const nextChunkStart = (currentChunk + 1) * chunkSize;
   
-  // Предзагружаем первые элементы нового чанка
-  const preloadStart = nextChunkStart;
-  const preloadEnd = Math.min(preloadStart + PRELOAD_CHUNK_SIZE, visibleItems);
+  // Определяем, к какому элементу прокручивать
+  let scrollToIndex;
+  if (startOfJump === 0) {
+    // Первый прыжок: прокручиваем к началу нового чанка
+    scrollToIndex = nextChunkStart;
+  } else {
+    // Последующие прыжки: прокручиваем к началу нового чанка
+    scrollToIndex = nextChunkStart;
+  }
   
-  // Также предзагружаем начало текущего чанка для навигации назад
-  const currentChunkStart = currentChunk * chunkSize;
+  // Убедимся, что индекс в пределах видимых элементов
+  scrollToIndex = Math.min(scrollToIndex, visibleItems - 1);
+  scrollToIndex = Math.max(0, scrollToIndex);
   
-  Promise.resolve().then(() => {
-    console.log(`Предзагрузка нового чанка: ${preloadStart}-${preloadEnd}`);
-    preloadImages(preloadStart, PRELOAD_CHUNK_SIZE);
-    
-    // Предзагружаем начала всех предыдущих чанков
-    for (let chunk = 0; chunk <= currentChunk; chunk++) {
-      const chunkStart = chunk * chunkSize;
-      if (chunkStart < visibleItems) {
-        console.log(`Предзагрузка начала чанка ${chunk}: ${chunkStart}`);
-        preloadImages(chunkStart, Math.min(10, PRELOAD_CHUNK_SIZE));
-      }
-    }
-    
-    // Инициализируем ленивую загрузку ПОСЛЕ предзагрузки
-    initLazyLoad();
-    
-    // Прокручиваем к началу нового чанка (или к началу прыжка, если это лучше)
-    let scrollToIndex;
-    
-    if (startOfJump === 0) {
-      // Первый прыжок: прокручиваем к началу нового чанка
-      scrollToIndex = nextChunkStart;
+  console.log(`Будем прокручивать к элементу ${scrollToIndex} (начало нового чанка)`);
+  
+  // Сначала выполняем прокрутку
+  setTimeout(() => {
+    const targetElement = document.getElementById(`thumb-${scrollToIndex}`);
+    if (targetElement) {
+      console.log(`Прокрутка к элементу thumb-${scrollToIndex}`);
+      targetElement.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start' 
+      });
     } else {
-      // Последующие прыжки: прокручиваем к началу нового чанка или к началу прыжка
-      scrollToIndex = nextChunkStart;
+      console.warn(`Элемент thumb-${scrollToIndex} не найден, прокручиваем вверх`);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-    
-    // Убедимся, что индекс в пределах видимых элементов
-    scrollToIndex = Math.min(scrollToIndex, visibleItems - 1);
-    scrollToIndex = Math.max(0, scrollToIndex);
-    
-    console.log(`Прокрутка к элементу ${scrollToIndex} (начало нового чанка)...`);
-    
-    // Даем браузеру немного времени на обработку
-    requestAnimationFrame(() => {
-      const targetElement = document.getElementById(`thumb-${scrollToIndex}`);
-      if (targetElement) {
-        console.log(`Элемент для прокрутки найден, выполняем прокрутку к thumb-${scrollToIndex}`);
-        targetElement.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'start' 
-        });
-      } else {
-        console.warn(`Элемент thumb-${scrollToIndex} не найден, прокручиваем вверх`);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-    });
-  });
+  }, 50);
+  
+  // Инициализируем ленивую загрузку, но с измененными настройками
+  initLazyLoadForJump(scrollToIndex);
+  
+  // Предзагружаем только элементы ВОКРУГ целевого элемента
+  console.log('Начинаем целеустремленную предзагрузку...');
+  
+  // 1. Предзагружаем элементы нового чанка (самые важные)
+  const preloadStart = scrollToIndex;
+  const preloadCount = Math.min(PRELOAD_CHUNK_SIZE * 2, visibleItems - preloadStart);
+  
+  if (preloadCount > 0) {
+    console.log(`Предзагрузка нового чанка: ${preloadStart}-${preloadStart + preloadCount - 1}`);
+    preloadImages(preloadStart, preloadCount);
+  }
+  
+  // 2. Предзагружаем немного элементов перед целевым (для плавности)
+  const beforePreloadStart = Math.max(0, scrollToIndex - 10);
+  const beforePreloadCount = Math.min(10, scrollToIndex);
+  
+  if (beforePreloadCount > 0) {
+    console.log(`Предзагрузка элементов перед целевым: ${beforePreloadStart}-${beforePreloadStart + beforePreloadCount - 1}`);
+    preloadImages(beforePreloadStart, beforePreloadCount);
+  }
   
   // Если все еще есть элементы для загрузки, показываем индикатор
   if (visibleItems < filtered.length) {
@@ -356,6 +341,88 @@ function jumpForward() {
   // Скрываем кнопку, если достигнут конец
   if (visibleItems >= filtered.length) {
     document.getElementById('jump-500').style.display = 'none';
+  }
+}
+
+// Специальная инициализация ленивой загрузки для прыжков
+function initLazyLoadForJump(startIndex) {
+  console.log('Инициализация ленивой загрузки для прыжка, старт с элемента', startIndex);
+  
+  // Создаем специальный observer с разными настройками для элементов ДО startIndex
+  observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const box = entry.target;
+        const index = parseInt(box.dataset.index, 10);
+        const img = box.querySelector('.thumb-image');
+        const src = img.dataset.src;
+        
+        // Для элементов ДО startIndex используем более низкий приоритет
+        if (index < startIndex) {
+          // Откладываем загрузку для элементов перед целевым
+          if (src && !img.classList.contains('loaded')) {
+            setTimeout(() => {
+              if (!img.classList.contains('loaded')) {
+                console.log(`Отложенная загрузка для элемента ${index} (перед целевым)`);
+                loadImageWithPriority(img, src, 'low');
+              }
+            }, 500 + (index * 10)); // Увеличиваем задержку для более ранних элементов
+          }
+        } else {
+          // Для элементов после startIndex загружаем нормально
+          if (src && !img.classList.contains('loaded')) {
+            console.log(`Нормальная загрузка для элемента ${index} (после целевого)`);
+            loadImageWithPriority(img, src, 'high');
+          }
+        }
+        
+        // Проверяем, нужно ли подгрузить новые элементы
+        if (index >= visibleItems - 5 && !isLoading && visibleItems < filtered.length) {
+          loadMoreItems();
+        }
+      }
+    });
+  }, {
+    rootMargin: `${LOAD_MARGIN}px`,
+    threshold: 0.1
+  });
+  
+  // Начинаем наблюдение за существующими элементами
+  document.querySelectorAll('.thumb-box').forEach(box => {
+    observer.observe(box);
+  });
+  console.log(`Наблюдение начато для ${document.querySelectorAll('.thumb-box').length} элементов`);
+}
+
+// Функция загрузки изображения с приоритетом
+function loadImageWithPriority(img, src, priority = 'medium') {
+  if (src && !img.classList.contains('loaded')) {
+    const imageLoader = new Image();
+    
+    // Устанавливаем приоритет загрузки
+    if (priority === 'high') {
+      // Высокий приоритет - загружаем сразу
+      imageLoader.fetchPriority = 'high';
+      imageLoader.src = src;
+    } else if (priority === 'low') {
+      // Низкий приоритет - небольшая задержка
+      setTimeout(() => {
+        if (!img.classList.contains('loaded')) {
+          imageLoader.src = src;
+        }
+      }, 100);
+    } else {
+      // Средний приоритет - обычная загрузка
+      imageLoader.src = src;
+    }
+    
+    imageLoader.onload = () => {
+      img.src = src;
+      img.classList.add('loaded');
+    };
+    imageLoader.onerror = () => {
+      console.error(`Ошибка загрузки изображения: ${src}`);
+    };
   }
 }
 
@@ -464,5 +531,6 @@ document.addEventListener('mouseover', (e) => {
 });
 
 load();
+
 
 
