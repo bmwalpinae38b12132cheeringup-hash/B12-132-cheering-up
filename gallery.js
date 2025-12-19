@@ -186,29 +186,59 @@ function loadMoreItems() {
 }
 
 // Предзагрузка изображений из указанного диапазона
+// Предзагрузка изображений из указанного диапазона
 function preloadImages(start, count) {
   console.log(`Предзагрузка изображений с ${start} по ${start + count - 1}`);
   const end = Math.min(start + count, visibleItems);
   
-  for (let i = start; i < end; i++) {
-    const img = document.querySelector(`#thumb-${i} .thumb-image`);
-    if (img) {
-      const src = img.dataset.src;
-      if (src && !img.classList.contains('loaded')) {
-        const imageLoader = new Image();
-        imageLoader.src = src;
-        imageLoader.onload = () => {
-          img.src = src;
-          img.classList.add('loaded');
-        };
-        imageLoader.onerror = () => {
-          console.error(`Ошибка предзагрузки изображения для элемента ${i}`);
-        };
+  // Используем микротаски для предотвращения блокировки UI
+  const preloadBatch = (batchStart, batchEnd) => {
+    for (let i = batchStart; i < batchEnd; i++) {
+      const img = document.querySelector(`#thumb-${i} .thumb-image`);
+      if (img) {
+        const src = img.dataset.src;
+        if (src && !img.classList.contains('loaded')) {
+          // Используем requestIdleCallback для фоновой загрузки
+          if ('requestIdleCallback' in window) {
+            requestIdleCallback(() => {
+              const imageLoader = new Image();
+              imageLoader.src = src;
+              imageLoader.onload = () => {
+                img.src = src;
+                img.classList.add('loaded');
+              };
+              imageLoader.onerror = () => {
+                console.error(`Ошибка предзагрузки изображения для элемента ${i}`);
+              };
+            });
+          } else {
+            // Fallback для браузеров без requestIdleCallback
+            setTimeout(() => {
+              const imageLoader = new Image();
+              imageLoader.src = src;
+              imageLoader.onload = () => {
+                img.src = src;
+                img.classList.add('loaded');
+              };
+              imageLoader.onerror = () => {
+                console.error(`Ошибка предзагрузки изображения для элемента ${i}`);
+              };
+            }, 0);
+          }
+        }
       }
     }
+  };
+  
+  // Разбиваем на мелкие батчи для лучшей отзывчивости
+  const BATCH_SIZE = 5;
+  for (let batchStart = start; batchStart < end; batchStart += BATCH_SIZE) {
+    const batchEnd = Math.min(batchStart + BATCH_SIZE, end);
+    setTimeout(() => preloadBatch(batchStart, batchEnd), 0);
   }
 }
 
+// Функция перехода на +500 изображений
 // Функция перехода на +500 изображений
 function jumpForward() {
   console.log('=== jumpForward вызван ===');
@@ -250,18 +280,43 @@ function jumpForward() {
   // Обновляем счетчик
   document.getElementById('counter').textContent = `(${visibleItems}/${filtered.length})`;
   
-  // Инициализируем ленивую загрузку
-  initLazyLoad();
-  
-  // Предзагружаем первые элементы каждого нового чанка по 500
+  // Сначала предзагружаем важные изображения ДО инициализации observer
   console.log('Начинаем предзагрузку изображений для новых чанков...');
-  const startOfNewChunk = scrollToIndex;
-  preloadImages(startOfNewChunk, PRELOAD_CHUNK_SIZE);
   
-  // Также предзагружаем первые элементы предыдущих чанков (для навигации назад)
-  for (let chunkStart = 0; chunkStart < startOfNewChunk; chunkStart += 500) {
-    preloadImages(chunkStart, Math.min(PRELOAD_CHUNK_SIZE, 30));
-  }
+  // 1. Предзагружаем первые элементы нового чанка (куда прыгаем)
+  const startOfNewChunk = scrollToIndex;
+  
+  // Используем микротаск для предзагрузки
+  Promise.resolve().then(() => {
+    // Сначала предзагружаем изображения, которые будут в viewport после прокрутки
+    preloadImages(startOfNewChunk, PRELOAD_CHUNK_SIZE);
+    
+    // Затем предзагружаем первые элементы предыдущих чанков
+    for (let chunkStart = 0; chunkStart < startOfNewChunk; chunkStart += 500) {
+      preloadImages(chunkStart, Math.min(PRELOAD_CHUNK_SIZE, 10));
+    }
+    
+    // Инициализируем ленивую загрузку ПОСЛЕ предзагрузки
+    initLazyLoad();
+    
+    // Прокручиваем к началу новых элементов (к элементу, с которого начался скачок)
+    console.log(`Прокрутка к элементу ${scrollToIndex}...`);
+    
+    // Даем браузеру немного времени на обработку
+    requestAnimationFrame(() => {
+      const targetElement = document.getElementById(`thumb-${scrollToIndex}`);
+      if (targetElement) {
+        console.log(`Элемент для прокрутки найден, выполняем прокрутку`);
+        targetElement.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        });
+      } else {
+        console.warn(`Элемент thumb-${scrollToIndex} не найден, прокручиваем вверх`);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
+  });
   
   // Если все еще есть элементы для загрузки, показываем индикатор
   if (visibleItems < filtered.length) {
@@ -274,22 +329,6 @@ function jumpForward() {
   if (visibleItems >= filtered.length) {
     document.getElementById('jump-500').style.display = 'none';
   }
-  
-  // Прокручиваем к началу новых элементов (к элементу, с которого начался скачок)
-  console.log(`Прокрутка к элементу ${scrollToIndex}...`);
-  setTimeout(() => {
-    const targetElement = document.getElementById(`thumb-${scrollToIndex}`);
-    if (targetElement) {
-      console.log(`Элемент для прокрутки найден, выполняем прокрутку`);
-      targetElement.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'start' 
-      });
-    } else {
-      console.warn(`Элемент thumb-${scrollToIndex} не найден, прокручиваем вверх`);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }, 100); // Небольшая задержка для гарантии отрисовки DOM
 }
 
 function onSearch(e) {
@@ -397,3 +436,4 @@ document.addEventListener('mouseover', (e) => {
 });
 
 load();
+
