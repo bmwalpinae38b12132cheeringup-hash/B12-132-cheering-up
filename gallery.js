@@ -6,11 +6,14 @@ const FULL_URL  = 'https://pub-3a115c1e9a8b4541b7685443d9eb4263.r2.dev/images/';
 const ITEMS_PER_PAGE = 30; // Сколько элементов загружать за раз
 const LOAD_MARGIN = 200;   // Загружать элементы за 200px до появления в viewport
 const PRELOAD_CHUNK_SIZE = 30; // Сколько элементов предзагружать из каждого нового чанка
+const CHUNK_SIZE = 500; // Размер чанка для прыжков
 
 let data, filtered, idx;
 let visibleItems = 0;
 let isLoading = false;
 let observer = null;
+let loadedImages = new Set(); // Для отслеживания уже загруженных изображений
+let createdElements = new Map(); // Для хранения уже созданных DOM элементов
 
 async function load() {
     console.log('Начало загрузки данных...');
@@ -19,7 +22,7 @@ async function load() {
     filtered = data;
     renderInitial();
   
-    const wanted = location.hash.slice(1).split('?')[0]; // "#10?img=..." → "10"
+    const wanted = location.hash.slice(1).split('?')[0];
     if (wanted) {
       const i = filtered.findIndex(r => r.id == wanted);
       if (i !== -1) openBox(i);
@@ -35,6 +38,7 @@ function renderInitial() {
   console.log('renderInitial вызван, filtered.length =', filtered.length);
   const grid = document.getElementById('grid');
   grid.innerHTML = '';
+  createdElements.clear();
   
   // Создаем контейнеры для первых ITEMS_PER_PAGE элементов
   visibleItems = Math.min(ITEMS_PER_PAGE, filtered.length);
@@ -45,7 +49,7 @@ function renderInitial() {
   }
   
   // Обновляем счетчик
-  document.getElementById('counter').textContent = `(${visibleItems}/${filtered.length})`;
+  updateCounter();
   
   // Если есть еще элементы, показываем индикатор загрузки
   if (visibleItems < filtered.length) {
@@ -60,26 +64,43 @@ function renderInitial() {
 }
 
 // Создание элемента миниатюры
-function createThumbBox(i) {
+function createThumbBox(i, forceCreate = false) {
+  // Проверяем, не создан ли элемент уже
+  if (!forceCreate && createdElements.has(i)) {
+    return createdElements.get(i);
+  }
+  
   const grid = document.getElementById('grid');
   const rec = filtered[i];
   
   const box = document.createElement('div');
   box.className = 'thumb-box';
   box.dataset.index = i;
-  box.id = `thumb-${i}`; // Добавляем ID для прокрутки
+  box.id = `thumb-${i}`;
+  
+  // Проверяем, было ли изображение уже загружено
+  const imageAlreadyLoaded = loadedImages.has(i);
   
   // Плейсхолдер
   const placeholder = document.createElement('div');
   placeholder.className = 'thumb-placeholder';
   box.appendChild(placeholder);
   
-  // Изображение (ленивая загрузка)
+  // Изображение
   const img = document.createElement('img');
   img.className = 'thumb-image';
-  img.dataset.src = THUMB_URL + rec.file; // Сохраняем URL в data-атрибуте
+  
+  if (imageAlreadyLoaded) {
+    // Если изображение уже загружено, устанавливаем src сразу
+    img.src = THUMB_URL + rec.file;
+    img.classList.add('loaded');
+  } else {
+    // Иначе используем ленивую загрузку
+    img.dataset.src = THUMB_URL + rec.file;
+    img.loading = 'lazy';
+  }
+  
   img.alt = rec.caption || '';
-  img.loading = 'lazy';
   box.appendChild(img);
   
   // Текст
@@ -91,24 +112,52 @@ function createThumbBox(i) {
   // Клик для открытия лайтбокса
   box.addEventListener('click', () => openBox(i));
   
-  grid.appendChild(box);
+  // Сохраняем элемент в карту
+  createdElements.set(i, box);
+  
+  // Если forceCreate=false, добавляем в сетку только если это новый элемент
+  if (forceCreate || i >= grid.children.length) {
+    grid.appendChild(box);
+  }
+  
+  return box;
+}
+
+// Обновление счетчика
+function updateCounter() {
+  document.getElementById('counter').textContent = `(${visibleItems}/${filtered.length})`;
 }
 
 // Инициализация ленивой загрузки
-// Также обновим функцию initLazyLoad для обычного случая
 function initLazyLoad() {
   console.log('Инициализация ленивой загрузки...');
+  
+  if (observer) {
+    observer.disconnect();
+  }
+  
   observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         const box = entry.target;
         const index = parseInt(box.dataset.index, 10);
         const img = box.querySelector('.thumb-image');
-        const src = img.dataset.src;
         
-        if (src && !img.classList.contains('loaded')) {
+        // Проверяем, нужно ли загружать изображение
+        if (img.dataset.src && !img.classList.contains('loaded')) {
+          const src = img.dataset.src;
           console.log(`Загрузка изображения для элемента ${index}`);
-          loadImageWithPriority(img, src, 'medium');
+          
+          const imageLoader = new Image();
+          imageLoader.src = src;
+          imageLoader.onload = () => {
+            img.src = src;
+            img.classList.add('loaded');
+            loadedImages.add(index); // Запоминаем, что изображение загружено
+          };
+          imageLoader.onerror = () => {
+            console.error(`Ошибка загрузки изображения для элемента ${index}`);
+          };
         }
         
         // Проверяем, нужно ли подгрузить новые элементы
@@ -142,7 +191,6 @@ function loadMoreItems() {
   
   // Используем requestAnimationFrame для лучшей производительности
   requestAnimationFrame(() => {
-    const grid = document.getElementById('grid');
     const startIndex = visibleItems;
     const endIndex = Math.min(visibleItems + ITEMS_PER_PAGE, filtered.length);
     
@@ -153,6 +201,7 @@ function loadMoreItems() {
     }
     
     // Начинаем наблюдение за новыми элементами
+    const grid = document.getElementById('grid');
     const newBoxes = Array.from(grid.children).slice(startIndex);
     newBoxes.forEach(box => observer.observe(box));
     
@@ -166,69 +215,37 @@ function loadMoreItems() {
     isLoading = false;
     
     // Обновляем счетчик
-    document.getElementById('counter').textContent = `(${visibleItems}/${filtered.length})`;
+    updateCounter();
     
     console.log(`Загрузка завершена, новый visibleItems: ${visibleItems}`);
-    
   });
 }
 
 // Предзагрузка изображений из указанного диапазона
-// Предзагрузка изображений из указанного диапазона
 function preloadImages(start, count) {
-  console.log(`Предзагрузка изображений с ${start} по ${start + count - 1}`);
   const end = Math.min(start + count, visibleItems);
   
-  // Используем микротаски для предотвращения блокировки UI
-  const preloadBatch = (batchStart, batchEnd) => {
-    for (let i = batchStart; i < batchEnd; i++) {
-      const img = document.querySelector(`#thumb-${i} .thumb-image`);
-      if (img) {
+  for (let i = start; i < end; i++) {
+    // Если изображение уже загружено, пропускаем
+    if (loadedImages.has(i)) continue;
+    
+    const box = createdElements.get(i);
+    if (box) {
+      const img = box.querySelector('.thumb-image');
+      if (img && img.dataset.src && !img.classList.contains('loaded')) {
         const src = img.dataset.src;
-        if (src && !img.classList.contains('loaded')) {
-          // Используем requestIdleCallback для фоновой загрузки
-          if ('requestIdleCallback' in window) {
-            requestIdleCallback(() => {
-              const imageLoader = new Image();
-              imageLoader.src = src;
-              imageLoader.onload = () => {
-                img.src = src;
-                img.classList.add('loaded');
-              };
-              imageLoader.onerror = () => {
-                console.error(`Ошибка предзагрузки изображения для элемента ${i}`);
-              };
-            });
-          } else {
-            // Fallback для браузеров без requestIdleCallback
-            setTimeout(() => {
-              const imageLoader = new Image();
-              imageLoader.src = src;
-              imageLoader.onload = () => {
-                img.src = src;
-                img.classList.add('loaded');
-              };
-              imageLoader.onerror = () => {
-                console.error(`Ошибка предзагрузки изображения для элемента ${i}`);
-              };
-            }, 0);
-          }
-        }
+        const imageLoader = new Image();
+        imageLoader.src = src;
+        imageLoader.onload = () => {
+          img.src = src;
+          img.classList.add('loaded');
+          loadedImages.add(i);
+        };
       }
     }
-  };
-  
-  // Разбиваем на мелкие батчи для лучшей отзывчивости
-  const BATCH_SIZE = 5;
-  for (let batchStart = start; batchStart < end; batchStart += BATCH_SIZE) {
-    const batchEnd = Math.min(batchStart + BATCH_SIZE, end);
-    setTimeout(() => preloadBatch(batchStart, batchEnd), 0);
   }
 }
 
-// Функция перехода на +500 изображений
-// Функция перехода на +500 изображений
-// Функция перехода на +500 изображений
 // Функция перехода на +500 изображений
 function jumpForward() {
   console.log('=== jumpForward вызван ===');
@@ -240,80 +257,65 @@ function jumpForward() {
     return;
   }
   
-  const jumpAmount = 500;
+  const jumpAmount = CHUNK_SIZE;
   const targetIndex = Math.min(visibleItems + jumpAmount, filtered.length);
-  
-  // Сохраняем начальный индекс ДО увеличения visibleItems
   const startOfJump = visibleItems;
+  
   console.log(`Целевой индекс: ${targetIndex}, начало прыжка: ${startOfJump}`);
   
-  // Очищаем текущий observer
+  // Вычисляем границы чанков
+  const currentChunk = Math.floor(startOfJump / CHUNK_SIZE);
+  const nextChunkStart = (currentChunk + 1) * CHUNK_SIZE;
+  
+  // Определяем, к какому элементу прокручивать
+  let scrollToIndex = nextChunkStart;
+  scrollToIndex = Math.min(scrollToIndex, targetIndex - 1);
+  scrollToIndex = Math.max(0, scrollToIndex);
+  
+  console.log(`Будем прокручивать к элементу ${scrollToIndex} (начало нового чанка)`);
+  
+  // Останавливаем наблюдение
   if (observer) {
     observer.disconnect();
     console.log('Observer отключен');
   }
   
-  // Очищаем сетку
+  // Создаем недостающие элементы (если их еще нет)
   const grid = document.getElementById('grid');
-  grid.innerHTML = '';
-  console.log('Сетка очищена');
   
-  // Устанавливаем новые видимые элементы
-  visibleItems = Math.min(targetIndex, filtered.length);
-  console.log(`Новый visibleItems: ${visibleItems}`);
-  
-  // Создаем контейнеры для видимых элементов
-  for (let i = 0; i < visibleItems; i++) {
-    createThumbBox(i);
+  // Убедимся, что у нас есть элементы до targetIndex
+  if (visibleItems < targetIndex) {
+    console.log(`Создание элементов с ${visibleItems} по ${targetIndex - 1}`);
+    
+    for (let i = visibleItems; i < targetIndex; i++) {
+      createThumbBox(i);
+    }
+    
+    visibleItems = targetIndex;
   }
-  console.log(`Создано ${visibleItems} элементов`);
   
   // Обновляем счетчик
-  document.getElementById('counter').textContent = `(${visibleItems}/${filtered.length})`;
+  updateCounter();
   
-  // Вычисляем границы чанков
-  const chunkSize = 500;
-  const currentChunk = Math.floor(startOfJump / chunkSize);
-  const nextChunkStart = (currentChunk + 1) * chunkSize;
-  
-  // Определяем, к какому элементу прокручивать
-  let scrollToIndex;
-  if (startOfJump === 0) {
-    // Первый прыжок: прокручиваем к началу нового чанка
-    scrollToIndex = nextChunkStart;
+  // Если все еще есть элементы для загрузки, показываем индикатор
+  if (visibleItems < filtered.length) {
+    document.getElementById('loading').classList.remove('hidden');
   } else {
-    // Последующие прыжки: прокручиваем к началу нового чанка
-    scrollToIndex = nextChunkStart;
+    document.getElementById('loading').classList.add('hidden');
   }
   
-  // Убедимся, что индекс в пределах видимых элементов
-  scrollToIndex = Math.min(scrollToIndex, visibleItems - 1);
-  scrollToIndex = Math.max(0, scrollToIndex);
+  // Скрываем кнопку, если достигнут конец
+  if (visibleItems >= filtered.length) {
+    document.getElementById('jump-500').style.display = 'none';
+  }
   
-  console.log(`Будем прокручивать к элементу ${scrollToIndex} (начало нового чанка)`);
+  // Инициализируем ленивую загрузку снова
+  initLazyLoad();
   
-  // Сначала выполняем прокрутку
-  setTimeout(() => {
-    const targetElement = document.getElementById(`thumb-${scrollToIndex}`);
-    if (targetElement) {
-      console.log(`Прокрутка к элементу thumb-${scrollToIndex}`);
-      targetElement.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'start' 
-      });
-    } else {
-      console.warn(`Элемент thumb-${scrollToIndex} не найден, прокручиваем вверх`);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }, 50);
-  
-  // Инициализируем ленивую загрузку, но с измененными настройками
-  initLazyLoadForJump(scrollToIndex);
-  
-  // Предзагружаем только элементы ВОКРУГ целевого элемента
+  // Предзагружаем важные изображения
   console.log('Начинаем целеустремленную предзагрузку...');
   
-  // 1. Предзагружаем элементы нового чанка (самые важные)
+  // 1. Предзагружаем элементы нового чанка
   const preloadStart = scrollToIndex;
   const preloadCount = Math.min(PRELOAD_CHUNK_SIZE * 2, visibleItems - preloadStart);
   
@@ -331,99 +333,20 @@ function jumpForward() {
     preloadImages(beforePreloadStart, beforePreloadCount);
   }
   
-  // Если все еще есть элементы для загрузки, показываем индикатор
-  if (visibleItems < filtered.length) {
-    document.getElementById('loading').classList.remove('hidden');
-  } else {
-    document.getElementById('loading').classList.add('hidden');
-  }
-  
-  // Скрываем кнопку, если достигнут конец
-  if (visibleItems >= filtered.length) {
-    document.getElementById('jump-500').style.display = 'none';
-  }
-}
-
-// Специальная инициализация ленивой загрузки для прыжков
-function initLazyLoadForJump(startIndex) {
-  console.log('Инициализация ленивой загрузки для прыжка, старт с элемента', startIndex);
-  
-  // Создаем специальный observer с разными настройками для элементов ДО startIndex
-  observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const box = entry.target;
-        const index = parseInt(box.dataset.index, 10);
-        const img = box.querySelector('.thumb-image');
-        const src = img.dataset.src;
-        
-        // Для элементов ДО startIndex используем более низкий приоритет
-        if (index < startIndex) {
-          // Откладываем загрузку для элементов перед целевым
-          if (src && !img.classList.contains('loaded')) {
-            setTimeout(() => {
-              if (!img.classList.contains('loaded')) {
-                console.log(`Отложенная загрузка для элемента ${index} (перед целевым)`);
-                loadImageWithPriority(img, src, 'low');
-              }
-            }, 500 + (index * 10)); // Увеличиваем задержку для более ранних элементов
-          }
-        } else {
-          // Для элементов после startIndex загружаем нормально
-          if (src && !img.classList.contains('loaded')) {
-            console.log(`Нормальная загрузка для элемента ${index} (после целевого)`);
-            loadImageWithPriority(img, src, 'high');
-          }
-        }
-        
-        // Проверяем, нужно ли подгрузить новые элементы
-        if (index >= visibleItems - 5 && !isLoading && visibleItems < filtered.length) {
-          loadMoreItems();
-        }
-      }
-    });
-  }, {
-    rootMargin: `${LOAD_MARGIN}px`,
-    threshold: 0.1
-  });
-  
-  // Начинаем наблюдение за существующими элементами
-  document.querySelectorAll('.thumb-box').forEach(box => {
-    observer.observe(box);
-  });
-  console.log(`Наблюдение начато для ${document.querySelectorAll('.thumb-box').length} элементов`);
-}
-
-// Функция загрузки изображения с приоритетом
-function loadImageWithPriority(img, src, priority = 'medium') {
-  if (src && !img.classList.contains('loaded')) {
-    const imageLoader = new Image();
-    
-    // Устанавливаем приоритет загрузки
-    if (priority === 'high') {
-      // Высокий приоритет - загружаем сразу
-      imageLoader.fetchPriority = 'high';
-      imageLoader.src = src;
-    } else if (priority === 'low') {
-      // Низкий приоритет - небольшая задержка
-      setTimeout(() => {
-        if (!img.classList.contains('loaded')) {
-          imageLoader.src = src;
-        }
-      }, 100);
+  // Прокручиваем к целевому элементу
+  setTimeout(() => {
+    const targetElement = document.getElementById(`thumb-${scrollToIndex}`);
+    if (targetElement) {
+      console.log(`Прокрутка к элементу thumb-${scrollToIndex}`);
+      targetElement.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start' 
+      });
     } else {
-      // Средний приоритет - обычная загрузка
-      imageLoader.src = src;
+      console.warn(`Элемент thumb-${scrollToIndex} не найден, прокручиваем вверх`);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-    
-    imageLoader.onload = () => {
-      img.src = src;
-      img.classList.add('loaded');
-    };
-    imageLoader.onerror = () => {
-      console.error(`Ошибка загрузки изображения: ${src}`);
-    };
-  }
+  }, 50);
 }
 
 function onSearch(e) {
@@ -433,8 +356,10 @@ function onSearch(e) {
   
   console.log(`Найдено ${filtered.length} элементов`);
   
-  // Сбрасываем видимые элементы
+  // Сбрасываем состояние
   visibleItems = 0;
+  loadedImages.clear();
+  createdElements.clear();
   
   // Очищаем текущий observer
   if (observer) {
@@ -453,6 +378,7 @@ function onSearch(e) {
   }
 }
 
+// Остальные функции (openBox, shareBtn, lb и т.д.) остаются без изменений
 function openBox(i) {
     console.log(`Открытие лайтбокса для элемента ${i}`);
     idx = i;
@@ -472,17 +398,16 @@ shareBtn.addEventListener('click', () => {
     console.log('Поделиться в Telegram');
     const rec  = filtered[idx];
     const base = location.origin + location.pathname.slice(0, location.pathname.lastIndexOf('/') + 1);
-    const page = base + 'preview.html#' + rec.id;   // **только hash**, никаких ?img=…
+    const page = base + 'preview.html#' + rec.id;
     window.location = 'https://t.me/share/url?url=' + encodeURIComponent(page);
 });
 
-// в gallery.js после объявления openBox() сфсфыс
 const lb = document.getElementById('lightbox');
 
 lb.addEventListener('click', e => {
     if (e.target.id === 'lb-img' || e.target.id === 'lb-prev' || e.target.id === 'lb-next' || e.target.closest('#lb-caption') || e.target.closest('#lb-share')) return;
     lb.classList.add('hidden');
-    history.replaceState(null, null, location.pathname); // убрали якорь
+    history.replaceState(null, null, location.pathname);
 });
 
 document.getElementById('lb-prev').onclick  = () => { 
@@ -516,21 +441,4 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-// Предзагрузка изображений при наведении (опционально)
-document.addEventListener('mouseover', (e) => {
-  const thumbBox = e.target.closest('.thumb-box');
-  if (thumbBox && !thumbBox.dataset.preloaded) {
-    const img = thumbBox.querySelector('.thumb-image');
-    const src = img.dataset.src;
-    if (src) {
-      const preload = new Image();
-      preload.src = src;
-      thumbBox.dataset.preloaded = 'true';
-    }
-  }
-});
-
 load();
-
-
-
