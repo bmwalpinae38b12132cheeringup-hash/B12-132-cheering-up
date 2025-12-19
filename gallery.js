@@ -158,70 +158,6 @@ function loadMoreItems() {
   }, 300);
 }
 
-// Функция перехода на +500 изображений
-function jumpForward() {
-  if (visibleItems >= filtered.length) return;
-  
-  const jumpAmount = 500;
-  const targetIndex = Math.min(visibleItems + jumpAmount, filtered.length);
-  
-  // Прокручиваем к началу страницы
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-  
-  // Очищаем текущий observer
-  if (observer) {
-    observer.disconnect();
-  }
-  
-  // Очищаем сетку
-  const grid = document.getElementById('grid');
-  grid.innerHTML = '';
-  
-  // Устанавливаем новые видимые элементы
-  visibleItems = Math.min(targetIndex, filtered.length);
-  
-  // Создаем контейнеры для видимых элементов
-  for (let i = 0; i < visibleItems; i++) {
-    createThumbBox(i);
-  }
-  
-  // Обновляем счетчик
-  document.getElementById('counter').textContent = `(${visibleItems}/${filtered.length})`;
-  
-  // Инициализируем ленивую загрузку для новых элементов
-  initLazyLoad();
-  
-  // Если все еще есть элементы для загрузки, показываем индикатор
-  if (visibleItems < filtered.length) {
-    document.getElementById('loading').classList.remove('hidden');
-  } else {
-    document.getElementById('loading').classList.add('hidden');
-  }
-  
-  // Скрываем кнопку, если достигнут конец
-  if (visibleItems >= filtered.length) {
-    document.getElementById('jump-500').style.display = 'none';
-  }
-}
-
-// Добавить в конец функции load() (после addEventListener для search):
-function load() {
-    data = await fetch(INDEX_URL).then(r => r.json());
-    filtered = data;
-    renderInitial();
-  
-    const wanted = location.hash.slice(1).split('?')[0];
-    if (wanted) {
-      const i = filtered.findIndex(r => r.id == wanted);
-      if (i !== -1) openBox(i);
-    }
-  
-    document.getElementById('search').addEventListener('input', onSearch);
-    
-    // Добавить обработчик для кнопки +500
-    document.getElementById('jump-500').addEventListener('click', jumpForward);
-}
-
 function onSearch(e) {
   const q = e.target.value.toLowerCase();
   filtered = data.filter(r => r.caption.toLowerCase().includes(q) || r.date.includes(q));
@@ -314,4 +250,3 @@ document.addEventListener('mouseover', (e) => {
 });
 
 load();
-
