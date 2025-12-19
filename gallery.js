@@ -162,14 +162,12 @@ function loadMoreItems() {
 }
 
 // Функция перехода на +500 изображений
+// Функция перехода на +500 изображений
 function jumpForward() {
   if (visibleItems >= filtered.length) return;
   
   const jumpAmount = 500;
   const targetIndex = Math.min(visibleItems + jumpAmount, filtered.length);
-  
-  // Прокручиваем к началу страницы
-  window.scrollTo({ top: 0, behavior: 'smooth' });
   
   // Очищаем текущий observer
   if (observer) {
@@ -188,10 +186,23 @@ function jumpForward() {
     createThumbBox(i);
   }
   
+  // НЕМЕДЛЕННО загружаем все изображения (без ленивой загрузки)
+  document.querySelectorAll('.thumb-image').forEach(img => {
+    const src = img.dataset.src;
+    if (src && !img.classList.contains('loaded')) {
+      const imageLoader = new Image();
+      imageLoader.src = src;
+      imageLoader.onload = () => {
+        img.src = src;
+        img.classList.add('loaded');
+      };
+    }
+  });
+  
   // Обновляем счетчик
   document.getElementById('counter').textContent = `(${visibleItems}/${filtered.length})`;
   
-  // Инициализируем ленивую загрузку для новых элементов
+  // Инициализируем ленивую загрузку для новых элементов (для дальнейшей прокрутки)
   initLazyLoad();
   
   // Если все еще есть элементы для загрузки, показываем индикатор
@@ -205,6 +216,11 @@ function jumpForward() {
   if (visibleItems >= filtered.length) {
     document.getElementById('jump-500').style.display = 'none';
   }
+  
+  // Прокручиваем к началу страницы (после загрузки)
+  setTimeout(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, 100);
 }
 
 function onSearch(e) {
@@ -299,4 +315,5 @@ document.addEventListener('mouseover', (e) => {
 });
 
 load();
+
 
