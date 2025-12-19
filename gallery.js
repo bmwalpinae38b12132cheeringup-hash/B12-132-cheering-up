@@ -163,6 +163,7 @@ function loadMoreItems() {
 
 // Функция перехода на +500 изображений
 // Функция перехода на +500 изображений
+// Функция перехода на +500 изображений
 function jumpForward() {
   if (visibleItems >= filtered.length) return;
   
@@ -186,24 +187,27 @@ function jumpForward() {
     createThumbBox(i);
   }
   
-  // НЕМЕДЛЕННО загружаем все изображения (без ленивой загрузки)
-  document.querySelectorAll('.thumb-image').forEach(img => {
-    const src = img.dataset.src;
-    if (src && !img.classList.contains('loaded')) {
-      const imageLoader = new Image();
-      imageLoader.src = src;
-      imageLoader.onload = () => {
-        img.src = src;
-        img.classList.add('loaded');
-      };
-    }
-  });
-  
   // Обновляем счетчик
   document.getElementById('counter').textContent = `(${visibleItems}/${filtered.length})`;
   
-  // Инициализируем ленивую загрузку для новых элементов (для дальнейшей прокрутки)
+  // Инициализируем ленивую загрузку
   initLazyLoad();
+  
+  // НАЧИНАЕМ ЗАГРУЗКУ ПЕРВЫХ ИЗОБРАЖЕНИЙ СРАЗУ (первые 30)
+  setTimeout(() => {
+    const firstImages = Array.from(document.querySelectorAll('.thumb-image')).slice(0, 30);
+    firstImages.forEach(img => {
+      const src = img.dataset.src;
+      if (src && !img.classList.contains('loaded')) {
+        const imageLoader = new Image();
+        imageLoader.src = src;
+        imageLoader.onload = () => {
+          img.src = src;
+          img.classList.add('loaded');
+        };
+      }
+    });
+  }, 50);
   
   // Если все еще есть элементы для загрузки, показываем индикатор
   if (visibleItems < filtered.length) {
@@ -217,12 +221,11 @@ function jumpForward() {
     document.getElementById('jump-500').style.display = 'none';
   }
   
-  // Прокручиваем к началу страницы (после загрузки)
+  // Прокручиваем к началу страницы
   setTimeout(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, 100);
 }
-
 function onSearch(e) {
   const q = e.target.value.toLowerCase();
   filtered = data.filter(r => r.caption.toLowerCase().includes(q) || r.date.includes(q));
@@ -315,5 +318,6 @@ document.addEventListener('mouseover', (e) => {
 });
 
 load();
+
 
 
