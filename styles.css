@@ -192,11 +192,16 @@ h1 {
 }
 
 /* ===== ПОИСК ===== */
-#search {
+/* ===== КОНТЕЙНЕР ПОИСКА (БЕЗ КНОПКИ) ===== */
+.search-container {
   margin: 15px 20px;
+  max-width: 600px;
+}
+
+#search {
+  width: 100%;
+  margin: 0;
   padding: 12px 16px;
-  width: calc(100% - 72px);
-  max-width: 500px;
   background: var(--steel-gray);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
@@ -215,6 +220,243 @@ h1 {
 
 #search::placeholder {
   color: var(--alpina-gold-dark);
+}
+
+
+/* ===== МОДАЛЬНОЕ ОКНО ===== */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 10, 10, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(5px);
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  background: var(--titanium-gray);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow: hidden;
+  border: 1px solid var(--alpina-blue);
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(201, 169, 110, 0.1);
+}
+
+.modal-header {
+  background: linear-gradient(
+    to right,
+    var(--alpina-blue-dark) 0%,
+    var(--alpina-blue) 100%
+  );
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid var(--alpina-gold);
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: white;
+  font-size: 1.3em;
+}
+
+.modal-close {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 28px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.3s ease;
+}
+
+.modal-close:hover {
+  color: var(--alpina-gold-light);
+}
+
+.modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  max-height: 70vh;
+}
+
+/* ===== КАЛЕНДАРЬ ===== */
+.calendar-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.calendar-controls button {
+  background: var(--steel-gray);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--aluminum-silver);
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.calendar-controls button:hover {
+  background: var(--alpina-blue);
+  border-color: var(--alpina-blue-light);
+  color: white;
+}
+
+.calendar-current {
+  font-size: 1.2em;
+  font-weight: 600;
+  color: var(--alpina-gold);
+  min-width: 160px;
+  text-align: center;
+  padding: 0 15px;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.calendar-day-header {
+  text-align: center;
+  padding: 10px 0;
+  color: var(--alpina-gold-light);
+  font-weight: 600;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--steel-gray);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  color: var(--aluminum-silver);
+  font-size: 14px;
+  user-select: none;
+}
+
+.calendar-day:hover {
+  background: var(--alpina-blue);
+  border-color: var(--alpina-blue-light);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 87, 166, 0.3);
+}
+
+.calendar-day.empty {
+  background: transparent;
+  border-color: transparent;
+  cursor: default;
+}
+
+.calendar-day.empty:hover {
+  background: transparent;
+  transform: none;
+  box-shadow: none;
+}
+
+.calendar-day.has-images {
+  background: rgba(0, 87, 166, 0.2);
+  border-color: var(--alpina-blue);
+  color: var(--instrument-glow);
+  font-weight: 600;
+}
+
+.calendar-day.has-images:hover {
+  background: var(--alpina-blue);
+  color: white;
+}
+
+.calendar-day.has-images::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  width: 6px;
+  height: 6px;
+  background: var(--alpina-gold);
+  border-radius: 50%;
+}
+
+.calendar-day.today {
+  border: 2px solid var(--alpina-gold);
+  color: var(--alpina-gold-light);
+}
+
+.calendar-legend {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--aluminum-silver);
+  font-size: 14px;
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--steel-gray);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.legend-dot.has-images {
+  background: rgba(0, 87, 166, 0.3);
+  border-color: var(--alpina-blue);
+}
+
+/* ===== СЧЕТЧИК ИЗОБРАЖЕНИЙ В ДНЯХ КАЛЕНДАРЯ ===== */
+.calendar-day .day-count {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: var(--alpina-gold);
+  color: var(--carbon-black);
+  font-size: 10px;
+  font-weight: bold;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 
 /* ===== СЕТКА ИЗОБРАЖЕНИЙ ===== */
@@ -483,37 +725,198 @@ h1 {
 }
 
 /* ===== КНОПКА +500 ===== */
-/* ===== КНОПКА +500 (ОБНОВЛЕННАЯ) ===== */
-#jump-500 {
+/* ===== ПЛАВАЮЩИЕ КНОПКИ ===== */
+.floating-buttons {
   position: fixed;
   bottom: 30px;
   right: 30px;
-  width: 70px;
-  height: 70px;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 35px;
+  z-index: 999;
+}
+
+.floating-btn {
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid transparent;
+  font-weight: bold;
+  box-shadow: 
+    0 8px 25px rgba(0, 0, 0, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.floating-btn:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 
+    0 12px 35px rgba(0, 0, 0, 0.5),
+    0 6px 18px rgba(0, 0, 0, 0.3);
+}
+
+.floating-btn:active {
+  transform: translateY(0) scale(0.98);
+  transition-duration: 0.1s;
+}
+
+/* Стили для кнопки календаря */
+.floating-btn.calendar-btn {
+  background: linear-gradient(
+    135deg,
+    var(--alpina-gold-dark) 0%,
+    var(--alpina-gold) 100%
+  );
+  color: var(--carbon-black);
+  border-color: var(--alpina-gold-light);
+  margin-bottom: 5px;
+}
+
+.floating-btn.calendar-btn:hover {
+  background: linear-gradient(
+    135deg,
+    var(--alpina-gold) 0%,
+    var(--alpina-gold-light) 100%
+  );
+  box-shadow: 
+    0 12px 35px rgba(201, 169, 110, 0.3),
+    0 6px 18px rgba(201, 169, 110, 0.2);
+}
+
+.floating-btn.calendar-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 255, 255, 0.1) 0%,
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.floating-btn.calendar-btn:hover::after {
+  opacity: 1;
+}
+
+/* Стили для кнопки +500 */
+#jump-500 {
   background: linear-gradient(
     135deg,
     var(--alpina-blue-dark) 0%,
     var(--alpina-blue) 100%
   );
   color: white;
-  border: 2px solid var(--alpina-blue-light);
-  font-size: 18px;
-  font-weight: bold;
-  cursor: pointer;
-  z-index: 999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 8px 30px rgba(0, 87, 166, 0.4),
-              0 0 20px rgba(0, 224, 255, 0.2);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-color: var(--alpina-blue-light);
   animation: pulse-glow 3s infinite;
 }
 
+#jump-500:hover {
+  background: linear-gradient(
+    135deg,
+    var(--alpina-blue) 0%,
+    var(--bmw-m-blue) 100%
+  );
+  box-shadow: 
+    0 12px 35px rgba(0, 87, 166, 0.4),
+    0 6px 18px rgba(0, 87, 166, 0.3),
+    0 0 20px rgba(0, 224, 255, 0.3);
+}
 
+.jump-text {
+  font-size: 18px;
+  font-weight: bold;
+  position: relative;
+  z-index: 1;
+}
 
-#jump-500:active {
-  transform: scale(0.95);
-  animation: none;
+.jump-effect {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle at center,
+    rgba(0, 224, 255, 0.2) 0%,
+    transparent 70%
+  );
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+#jump-500:hover .jump-effect {
+  opacity: 1;
+}
+
+/* Анимация пульсации для обеих кнопок */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 
+      0 8px 25px rgba(0, 0, 0, 0.4),
+      0 4px 12px rgba(0, 0, 0, 0.2),
+      0 0 0 0 rgba(0, 136, 204, 0.4);
+  }
+  50% {
+    box-shadow: 
+      0 8px 25px rgba(0, 0, 0, 0.4),
+      0 4px 12px rgba(0, 0, 0, 0.2),
+      0 0 0 8px rgba(0, 136, 204, 0);
+  }
+}
+
+/* Для календаря другая анимация */
+.calendar-btn {
+  animation: calendar-pulse 4s infinite;
+}
+
+@keyframes calendar-pulse {
+  0%, 100% {
+    box-shadow: 
+      0 8px 25px rgba(0, 0, 0, 0.4),
+      0 4px 12px rgba(0, 0, 0, 0.2),
+      0 0 0 0 rgba(201, 169, 110, 0.3);
+  }
+  50% {
+    box-shadow: 
+      0 8px 25px rgba(0, 0, 0, 0.4),
+      0 4px 12px rgba(0, 0, 0, 0.2),
+      0 0 0 6px rgba(201, 169, 110, 0);
+  }
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+  .floating-buttons {
+    bottom: 20px;
+    right: 20px;
+    gap: 12px;
+  }
+  
+  .floating-btn {
+    width: 56px;
+    height: 56px;
+  }
+  
+  .jump-text {
+    font-size: 16px;
+  }
+}
+
+/* Когда календарь открыт - делаем кнопку невидимой */
+.floating-btn.calendar-btn.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.8);
 }
