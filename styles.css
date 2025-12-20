@@ -1098,10 +1098,14 @@ h1 {
 
 .reverse-btn.active .arrow-left {
   color: var(--bmw-m-red);
+  transform: rotate(90deg) scaleX(-1);
+  margin-bottom: 15px;
 }
 
 .reverse-btn.active .arrow-right {
   color: var(--alpina-blue);
+  transform: rotate(90deg) scaleX(-1);
+  margin-bottom: 15px;
 }
 
 /* Анимация пульсации для кнопки +500 */
