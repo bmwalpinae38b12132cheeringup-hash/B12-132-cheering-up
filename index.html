@@ -21,7 +21,39 @@
     <span id="counter"></span>
   </h1>
   
-  <input id="search" type="text" placeholder="поиск по описанию или дате"/>
+  <!-- Поиск (без кнопки календаря) -->
+  <div class="search-container">
+    <input id="search" type="text" placeholder="поиск по описанию или дате"/>
+  </div>
+    <!-- Модальное окно календаря -->
+    <div id="calendar-modal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Календарь</h2>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="calendar-controls">
+            <button id="calendar-prev-year">&laquo;</button>
+            <button id="calendar-prev-month">&lsaquo;</button>
+            <span id="calendar-current" class="calendar-current"></span>
+            <button id="calendar-next-month">&rsaquo;</button>
+            <button id="calendar-next-year">&raquo;</button>
+          </div>
+          <div id="calendar" class="calendar-grid"></div>
+          <div class="calendar-legend">
+            <div class="legend-item">
+              <span class="legend-dot has-images"></span>
+              <span>Есть изображения</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot"></span>
+              <span>Нет изображений</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   
   <div id="grid"></div>
   
@@ -40,9 +72,18 @@
   </div>
   
   <script type="module" src="gallery.js"></script>
-  <button id="jump-500" title="Перейти на +500 изображений">
-    <span class="jump-text">+500</span>
-    <div class="jump-effect"></div>
-  </button>
+  <!-- Контейнер для плавающих кнопок -->
+  <div class="floating-buttons">
+    <button id="calendar-btn" class="floating-btn calendar-btn" title="Открыть календарь">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2zm-8 4H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z"/>
+      </svg>
+    </button>
+    
+    <button id="jump-500" class="floating-btn" title="Перейти на +500 изображений">
+      <span class="jump-text">+500</span>
+      <div class="jump-effect"></div>
+    </button>
+  </div>
 </body>
 </html>
