@@ -25,7 +25,7 @@ let touchEndX = 0;
 let isSwiping = false;
 const SWIPE_THRESHOLD = 50; // Минимальное расстояние свайпа в пикселях
 
-
+let isReversed = false;
 
 async function load() {
     console.log('Начало загрузки данных...');
@@ -48,6 +48,74 @@ async function load() {
     // Добавляем обработчики для календаря
     initCalendar();
 }
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    const reverseBtn = document.getElementById('reverse-btn');
+    
+    // Обработчик клика на кнопку реверса
+    reverseBtn.addEventListener('click', toggleReverse);
+});
+
+// Функция переключения реверса
+function toggleReverse() {
+    console.log(`Переключение реверса: ${isReversed ? 'выключение' : 'включение'}`);
+    
+    // Переключаем состояние
+    isReversed = !isReversed;
+    
+    // Переворачиваем массив filtered
+    filtered.reverse();
+    
+    // Обновляем UI
+    refreshGrid();
+    
+    // Обновляем состояние кнопки
+    const reverseBtn = document.getElementById('reverse-btn');
+    if (isReversed) {
+        reverseBtn.classList.add('active');
+    } else {
+        reverseBtn.classList.remove('active');
+    }
+    
+    // Обновляем индексы для открытого лайтбокса если он открыт
+    const lightbox = document.getElementById('lightbox');
+    if (!lightbox.classList.contains('hidden') && idx !== undefined) {
+        // Находим тот же элемент по ID в перевернутом массиве
+        const currentId = filtered[idx]?.id;
+        if (currentId) {
+            const newIdx = filtered.findIndex(r => r.id === currentId);
+            if (newIdx !== -1) {
+                idx = newIdx;
+            }
+        }
+    }
+}
+
+// Функция для обновления сетки
+function refreshGrid() {
+    console.log('Обновление сетки с реверсом...');
+    
+    // Сбрасываем состояние
+    visibleItems = 0;
+    loadedImages.clear();
+    createdElements.clear();
+    
+    // Очищаем текущий observer
+    if (observer) {
+        observer.disconnect();
+    }
+    
+    // Перерисовываем
+    renderInitial();
+    
+    // Перерисовываем календарь если он открыт
+    const calendarModal = document.getElementById('calendar-modal');
+    if (!calendarModal.classList.contains('hidden')) {
+        renderCalendar();
+    }
+}
+
 
 function buildDateMap(useFiltered = false) {
   dateImageMap.clear();
@@ -224,7 +292,7 @@ if (filtered.length > 0) {
 }
 
 function jumpToDate(dateKey) {
-  console.log(`Переход к дате: ${dateKey}`);
+  console.log(`Переход к дате: ${dateKey}, реверс: ${isReversed}`);
   
   // Находим все изображения за эту дату в фильтрованных данных
   const imagesForDate = filtered.filter((rec, index) => 
@@ -236,12 +304,14 @@ function jumpToDate(dateKey) {
       return;
   }
   
-  // Находим индекс первого изображения за эту дату в filtered
-  const firstImage = imagesForDate[0];
-  const targetIndex = filtered.findIndex(rec => rec.id === firstImage.id);
+  // Если реверс включен, берем последнее изображение за дату
+  // Если выключен - первое
+  const targetImage = isReversed ? imagesForDate[imagesForDate.length - 1] : imagesForDate[0];
+  const targetIndex = filtered.findIndex(rec => rec.id === targetImage.id);
   
-  console.log(`Первое изображение за ${dateKey} находится на индексе ${targetIndex} в filtered`);
+  console.log(`Целевое изображение на индексе ${targetIndex} в filtered`);
   
+  // Остальной код функции остается таким же...
   if (targetIndex === -1) {
       console.error('Не удалось найти изображение в filtered');
       return;
@@ -620,30 +690,18 @@ function jumpForward() {
 function onSearch(e) {
   console.log('Поиск:', e.target.value);
   const q = e.target.value.toLowerCase();
-  filtered = data.filter(r => r.caption.toLowerCase().includes(q) || r.date.includes(q));
   
-  console.log(`Найдено ${filtered.length} элементов`);
+  // Всегда ищем в оригинальном порядке данных
+  const searchResults = data.filter(r => r.caption.toLowerCase().includes(q) || r.date.includes(q));
   
-  // Сбрасываем состояние
-  visibleItems = 0;
-  loadedImages.clear();
-  createdElements.clear();
+  // Применяем реверс если он активен
+  filtered = isReversed ? searchResults.reverse() : searchResults;
   
-  // Очищаем текущий observer
-  if (observer) {
-      observer.disconnect();
-  }
+  console.log(`Найдено ${filtered.length} элементов, реверс: ${isReversed}`);
   
-  // Перерисовываем
-  renderInitial();
+  refreshGrid();
   
-  // Перерисовываем календарь если он открыт
-  const calendarModal = document.getElementById('calendar-modal');
-  if (!calendarModal.classList.contains('hidden')) {
-      renderCalendar();
-  }
-  
-  // Скрываем/показываем кнопку +500 в зависимости от результатов поиска
+  // Скрываем/показываем кнопку +500
   const jumpBtn = document.getElementById('jump-500');
   if (filtered.length <= ITEMS_PER_PAGE) {
       jumpBtn.style.display = 'none';
