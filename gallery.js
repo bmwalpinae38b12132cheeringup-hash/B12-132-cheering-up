@@ -15,6 +15,10 @@ let observer = null;
 let loadedImages = new Set(); // Для отслеживания уже загруженных изображений
 let createdElements = new Map(); // Для хранения уже созданных DOM элементов
 
+// Добавьте эти переменные после других глобальных переменных
+let calendarCurrentDate = new Date();
+let dateImageMap = new Map(); // Будет хранить соответствие дат и индексов изображений
+
 async function load() {
     console.log('Начало загрузки данных...');
     data = await fetch(INDEX_URL).then(r => r.json());
@@ -32,6 +36,262 @@ async function load() {
     
     // Добавить обработчик для кнопки +500
     document.getElementById('jump-500').addEventListener('click', jumpForward);
+
+    // Добавляем обработчики для календаря
+    initCalendar();
+}
+
+function buildDateMap(useFiltered = false) {
+  dateImageMap.clear();
+  const sourceData = useFiltered ? filtered : data;
+  
+  sourceData.forEach((rec, index) => {
+      const dateKey = rec.date.slice(0, 10); // YYYY-MM-DD
+      if (!dateImageMap.has(dateKey)) {
+          dateImageMap.set(dateKey, []);
+      }
+      // Сохраняем глобальный индекс (не фильтрованный)
+      const globalIndex = data.findIndex(item => item.id === rec.id);
+      dateImageMap.get(dateKey).push(globalIndex);
+  });
+  console.log(`Построена карта дат: ${dateImageMap.size} уникальных дат`);
+}
+
+function initCalendar() {
+  const calendarBtn = document.getElementById('calendar-btn');
+  const calendarModal = document.getElementById('calendar-modal');
+  const modalClose = calendarModal.querySelector('.modal-close');
+  
+  // Открытие/закрытие модального окна
+  calendarBtn.addEventListener('click', () => {
+      calendarModal.classList.remove('hidden');
+      renderCalendar();
+  });
+  
+  modalClose.addEventListener('click', () => {
+      calendarModal.classList.add('hidden');
+  });
+  
+  calendarModal.addEventListener('click', (e) => {
+      if (e.target === calendarModal) {
+          calendarModal.classList.add('hidden');
+      }
+  });
+  
+  // Управление календарем
+  document.getElementById('calendar-prev-year').addEventListener('click', () => {
+      calendarCurrentDate.setFullYear(calendarCurrentDate.getFullYear() - 1);
+      renderCalendar();
+  });
+  
+  document.getElementById('calendar-prev-month').addEventListener('click', () => {
+      calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() - 1);
+      renderCalendar();
+  });
+  
+  document.getElementById('calendar-next-month').addEventListener('click', () => {
+      calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() + 1);
+      renderCalendar();
+  });
+  
+  document.getElementById('calendar-next-year').addEventListener('click', () => {
+      calendarCurrentDate.setFullYear(calendarCurrentDate.getFullYear() + 1);
+      renderCalendar();
+  });
+}
+
+function renderCalendar() {
+
+// В начале renderCalendar добавьте:
+console.log(`renderCalendar вызван, filtered.length = ${filtered.length}`);
+
+// Выведите несколько примеров дат для отладки
+if (filtered.length > 0) {
+    console.log('Примеры дат в filtered:');
+    filtered.slice(0, 5).forEach((rec, i) => {
+        console.log(`  ${i}: ${rec.date.slice(0, 10)} - ${rec.caption.substring(0, 30)}...`);
+    });
+}
+
+  const year = calendarCurrentDate.getFullYear();
+  const month = calendarCurrentDate.getMonth();
+  
+  // Обновляем заголовок
+  const monthNames = [
+      'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+      'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
+  ];
+  document.getElementById('calendar-current').textContent = 
+      `${monthNames[month]} ${year}`;
+  
+  // Создаем календарь
+  const calendarEl = document.getElementById('calendar');
+  calendarEl.innerHTML = '';
+  
+  // Добавляем заголовки дней недели
+  const dayNames = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+  dayNames.forEach(day => {
+      const dayEl = document.createElement('div');
+      dayEl.className = 'calendar-day-header';
+      dayEl.textContent = day;
+      calendarEl.appendChild(dayEl);
+  });
+  
+  // Определяем первый день месяца
+  const firstDay = new Date(year, month, 1);
+  const startingDay = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
+  
+  // Добавляем пустые ячейки для начала месяца
+  for (let i = 0; i < startingDay; i++) {
+      const emptyEl = document.createElement('div');
+      emptyEl.className = 'calendar-day empty';
+      calendarEl.appendChild(emptyEl);
+  }
+  
+  // Определяем последний день месяца
+  const lastDay = new Date(year, month + 1, 0);
+  const daysInMonth = lastDay.getDate();
+  const today = new Date();
+  
+  // Собираем все уникальные даты из текущих данных (фильтрованных)
+  const datesWithImages = new Set();
+  filtered.forEach(rec => {
+      const dateKey = rec.date.slice(0, 10);
+      datesWithImages.add(dateKey);
+  });
+  
+  console.log(`В календаре найдено ${datesWithImages.size} дат с изображениями`);
+  
+  // Добавляем дни месяца
+  for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(year, month, day);
+      const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      
+      const dayEl = document.createElement('div');
+      dayEl.className = 'calendar-day';
+      dayEl.textContent = day;
+      dayEl.dataset.date = dateKey;
+      
+      // Проверяем, есть ли изображения в этот день в текущих данных
+      const hasImages = datesWithImages.has(dateKey);
+      
+      // Дополнительная проверка: подсчет количества изображений
+      if (hasImages) {
+          const imagesForThisDate = filtered.filter(rec => 
+              rec.date.startsWith(dateKey)
+          );
+          const imageCount = imagesForThisDate.length;
+          
+          dayEl.classList.add('has-images');
+          dayEl.title = `${imageCount} изображений за ${dateKey}`;
+          
+          // Добавляем счетчик для дней с несколькими изображениями
+          if (imageCount > 1) {
+              const countBadge = document.createElement('span');
+              countBadge.className = 'day-count';
+              countBadge.textContent = imageCount;
+              dayEl.appendChild(countBadge);
+          }
+      }
+      
+      // Отмечаем сегодняшний день
+      const isToday = date.getFullYear() === today.getFullYear() &&
+                     date.getMonth() === today.getMonth() &&
+                     date.getDate() === today.getDate();
+      
+      if (isToday) {
+          dayEl.classList.add('today');
+      }
+      
+      // Добавляем обработчик клика
+      dayEl.addEventListener('click', () => {
+          if (hasImages) {
+              jumpToDate(dateKey);
+              calendarModal.classList.add('hidden');
+          }
+      });
+      
+      calendarEl.appendChild(dayEl);
+  }
+}
+
+function jumpToDate(dateKey) {
+  console.log(`Переход к дате: ${dateKey}`);
+  
+  // Находим все изображения за эту дату в фильтрованных данных
+  const imagesForDate = filtered.filter((rec, index) => 
+      rec.date.startsWith(dateKey)
+  );
+  
+  if (!imagesForDate || imagesForDate.length === 0) {
+      console.log('Нет изображений для этой даты');
+      return;
+  }
+  
+  // Находим индекс первого изображения за эту дату в filtered
+  const firstImage = imagesForDate[0];
+  const targetIndex = filtered.findIndex(rec => rec.id === firstImage.id);
+  
+  console.log(`Первое изображение за ${dateKey} находится на индексе ${targetIndex} в filtered`);
+  
+  if (targetIndex === -1) {
+      console.error('Не удалось найти изображение в filtered');
+      return;
+  }
+  
+  // Определяем, нужно ли подгрузить элементы до этой даты
+  if (targetIndex >= visibleItems) {
+      console.log(`Подгрузка элементов до индекса ${targetIndex}`);
+      
+      // Отключаем текущий observer
+      if (observer) {
+          observer.disconnect();
+      }
+      
+      // Создаем недостающие элементы
+      const grid = document.getElementById('grid');
+      const neededCount = targetIndex - visibleItems + 1;
+      
+      for (let i = visibleItems; i <= targetIndex && i < filtered.length; i++) {
+          createThumbBox(i);
+      }
+      
+      visibleItems = Math.min(targetIndex + 1, filtered.length);
+      updateCounter();
+      
+      // Инициализируем observer заново
+      initLazyLoad();
+  }
+  
+  // Прокручиваем к целевому элементу
+  setTimeout(() => {
+      const targetElement = document.getElementById(`thumb-${targetIndex}`);
+      if (targetElement) {
+          console.log(`Прокрутка к элементу thumb-${targetIndex}`);
+          targetElement.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'center' 
+          });
+          
+          // Добавляем подсветку на секунду
+          targetElement.style.boxShadow = '0 0 0 3px var(--alpina-gold), 0 0 20px rgba(201, 169, 110, 0.5)';
+          targetElement.style.zIndex = '100';
+          
+          setTimeout(() => {
+              targetElement.style.boxShadow = '';
+              targetElement.style.zIndex = '';
+          }, 1500);
+      } else {
+          console.error(`Элемент thumb-${targetIndex} не найден`);
+      }
+  }, 100);
+  
+  // Если после перехода нужно больше элементов, показываем индикатор
+  if (visibleItems < filtered.length) {
+      document.getElementById('loading').classList.remove('hidden');
+  } else {
+      document.getElementById('loading').classList.add('hidden');
+  }
 }
 
 function renderInitial() {
@@ -363,19 +623,36 @@ function onSearch(e) {
   
   // Очищаем текущий observer
   if (observer) {
-    observer.disconnect();
+      observer.disconnect();
   }
   
   // Перерисовываем
   renderInitial();
   
+  // Перерисовываем календарь если он открыт
+  const calendarModal = document.getElementById('calendar-modal');
+  if (!calendarModal.classList.contains('hidden')) {
+      renderCalendar();
+  }
+  
   // Скрываем/показываем кнопку +500 в зависимости от результатов поиска
   const jumpBtn = document.getElementById('jump-500');
   if (filtered.length <= ITEMS_PER_PAGE) {
-    jumpBtn.style.display = 'none';
+      jumpBtn.style.display = 'none';
   } else {
-    jumpBtn.style.display = 'block';
+      jumpBtn.style.display = 'block';
   }
+}
+
+function buildDateMapForFiltered() {
+  dateImageMap.clear();
+  filtered.forEach((rec, index) => {
+      const dateKey = rec.date.slice(0, 10);
+      if (!dateImageMap.has(dateKey)) {
+          dateImageMap.set(dateKey, []);
+      }
+      dateImageMap.get(dateKey).push(index);
+  });
 }
 
 // Остальные функции (openBox, shareBtn, lb и т.д.) остаются без изменений
