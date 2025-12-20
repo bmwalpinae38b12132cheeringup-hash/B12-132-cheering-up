@@ -676,6 +676,9 @@ function openBox(i) {
   document.getElementById('lb-caption').textContent = rec.caption + ' (' + rec.date.slice(0,10) + ')';
   document.getElementById('lightbox').classList.remove('hidden');
   
+  // Блокируем скролл страницы
+  document.body.classList.add('no-scroll');
+  
   // Сброс позиций касания
   touchStartX = 0;
   touchEndX = 0;
@@ -765,9 +768,11 @@ shareBtn.addEventListener('click', () => {
 const lb = document.getElementById('lightbox');
 
 lb.addEventListener('click', e => {
-    if (e.target.id === 'lb-img' || e.target.id === 'lb-prev' || e.target.id === 'lb-next' || e.target.closest('#lb-caption') || e.target.closest('#lb-share')) return;
-    lb.classList.add('hidden');
-    history.replaceState(null, null, location.pathname);
+  if (e.target.id === 'lb-img' || e.target.id === 'lb-prev' || e.target.id === 'lb-next' || e.target.closest('#lb-caption') || e.target.closest('#lb-share')) return;
+  lb.classList.add('hidden');
+  // Восстанавливаем скролл
+  document.body.classList.remove('no-scroll');
+  history.replaceState(null, null, location.pathname);
 });
 
 document.getElementById('lb-prev').onclick  = () => { 
@@ -788,6 +793,7 @@ document.addEventListener('keydown', (e) => {
   switch (e.key) {
     case 'Escape':
       lightbox.classList.add('hidden');
+      document.body.classList.remove('no-scroll');
       history.replaceState(null, null, location.pathname);
       break;
     case 'ArrowLeft':
