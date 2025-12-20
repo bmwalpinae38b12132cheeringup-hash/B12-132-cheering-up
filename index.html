@@ -6,6 +6,11 @@
   <link rel="stylesheet" href="styles.css"/>
 </head>
 <body>
+  <div id="progress-bar" class="hidden">
+    <div class="progress-diamonds-top"></div>
+    <div class="progress-diamonds-bottom"></div>
+    <div class="progress-fill"></div>
+  </div>
   <h1>
     <a href="https://t.me/alpina_b12_132" target="_blank" class="channel-link">
       <svg class="tg-icon" width="24" height="24" viewBox="0 0 24 24">
@@ -28,14 +33,16 @@
   <div id="lightbox" class="hidden">
     <img id="lb-img" src="" alt=""/>
     <div id="lb-caption"></div>
-    <button id="lb-close"></button>
+
     <button id="lb-share">Поделиться в Telegram</button>
     <button id="lb-prev">‹</button>
     <button id="lb-next">›</button>
   </div>
   
   <script type="module" src="gallery.js"></script>
-  <button id="jump-500" title="Перейти на +500 изображений">+500</button>
+  <button id="jump-500" title="Перейти на +500 изображений">
+    <span class="jump-text">+500</span>
+    <div class="jump-effect"></div>
+  </button>
 </body>
 </html>
-
