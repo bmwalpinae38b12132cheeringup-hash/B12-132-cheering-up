@@ -8,6 +8,24 @@
   --alpina-gold: #c9a96e;
   --alpina-gold-light: #e6c28c;
   --alpina-gold-dark: #a68b52;
+
+    /* Alpina Silver - фирменный серебристый цвет Alpina */
+    --alpina-silver: #c0c0c0;
+    --alpina-silver-light: #e8e8e8;
+    --alpina-silver-dark: #a0a0a0;
+
+    /* Alpina Green - фирменный зеленый цвет Alpina */
+    --alpina-green: #006a4e;
+    --alpina-green-light: #008f6b;
+    --alpina-green-dark: #004d3a;
+    --alpina-green-glow: rgba(0, 106, 78, 0.4);
+
+    /* Расширенная палитра Alpina Green */
+    --alpina-green-neon: #00ffaa;      /* Неоновый акцент для подсветки */
+    --alpina-green-matte: #00573f;     /* Матовый вариант */
+    --alpina-green-metallic: #008060;   /* Металлический оттенок */
+    --alpina-green-turbo: #00cc88;     /* Для индикации турбо */
+
   
   /* BMW M цвета */
   --bmw-m-blue: #0088cc;
@@ -450,8 +468,8 @@ h1 {
   color: var(--carbon-black);
   font-size: 10px;
   font-weight: bold;
-  width: 16px;
-  height: 16px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -724,7 +742,11 @@ h1 {
   transform: translateY(-2px);
 }
 
+
+
+
 /* ===== КНОПКА +500 ===== */
+/* ===== ПЛАВАЮЩИЕ КНОПКИ ===== */
 /* ===== ПЛАВАЮЩИЕ КНОПКИ ===== */
 .floating-buttons {
   position: fixed;
@@ -766,71 +788,54 @@ h1 {
   transition-duration: 0.1s;
 }
 
-/* Стили для кнопки календаря */
-.floating-btn.calendar-btn {
-  background: linear-gradient(
-    135deg,
-    var(--alpina-gold-dark) 0%,
-    var(--alpina-gold) 100%
-  );
-  color: var(--carbon-black);
-  border-color: var(--alpina-gold-light);
-  margin-bottom: 5px;
-}
-
-.floating-btn.calendar-btn:hover {
-  background: linear-gradient(
-    135deg,
-    var(--alpina-gold) 0%,
-    var(--alpina-gold-light) 100%
-  );
-  box-shadow: 
-    0 12px 35px rgba(201, 169, 110, 0.3),
-    0 6px 18px rgba(201, 169, 110, 0.2);
-}
-
-.floating-btn.calendar-btn::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(
-    circle at center,
-    rgba(255, 255, 255, 0.1) 0%,
-    transparent 70%
-  );
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.floating-btn.calendar-btn:hover::after {
-  opacity: 1;
-}
-
-/* Стили для кнопки +500 */
+/* Стили для кнопки +500 - ЗЕЛЁНАЯ ALPINA С ЗОЛОТОМ */
 #jump-500 {
   background: linear-gradient(
     135deg,
-    var(--alpina-blue-dark) 0%,
-    var(--alpina-blue) 100%
+    #005a00 0%, /* Тёмно-зелёный Alpina */
+    #007700 100% /* Зелёный Alpina */
   );
-  color: white;
-  border-color: var(--alpina-blue-light);
+  color: var(--alpina-gold-light);
+  border-color: var(--alpina-gold);
   animation: pulse-glow 3s infinite;
+  position: relative;
 }
 
 #jump-500:hover {
   background: linear-gradient(
     135deg,
-    var(--alpina-blue) 0%,
-    var(--bmw-m-blue) 100%
+    #007700 0%,
+    #009900 100% /* Светло-зелёный при наведении */
   );
+  border-color: var(--alpina-gold-light);
   box-shadow: 
-    0 12px 35px rgba(0, 87, 166, 0.4),
-    0 6px 18px rgba(0, 87, 166, 0.3),
-    0 0 20px rgba(0, 224, 255, 0.3);
+    0 12px 35px rgba(0, 90, 0, 0.4),
+    0 6px 18px rgba(0, 90, 0, 0.3),
+    0 0 20px rgba(201, 169, 110, 0.3);
+}
+
+#jump-500::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: 50%;
+  background: linear-gradient(
+    45deg,
+    var(--alpina-gold-dark),
+    var(--alpina-gold),
+    var(--alpina-gold-light)
+  );
+  z-index: -1;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+#jump-500:hover::before {
+  opacity: 1;
+  animation: gold-glow 2s infinite;
 }
 
 .jump-text {
@@ -838,6 +843,7 @@ h1 {
   font-weight: bold;
   position: relative;
   z-index: 1;
+  text-shadow: 0 0 10px rgba(201, 169, 110, 0.5);
 }
 
 .jump-effect {
@@ -848,7 +854,7 @@ h1 {
   height: 100%;
   background: radial-gradient(
     circle at center,
-    rgba(0, 224, 255, 0.2) 0%,
+    rgba(201, 169, 110, 0.3) 0%,
     transparent 70%
   );
   border-radius: 50%;
@@ -860,19 +866,72 @@ h1 {
   opacity: 1;
 }
 
-/* Анимация пульсации для обеих кнопок */
-@keyframes pulse-glow {
+/* Стили для кнопки календаря - СИНЯЯ ALPINA */
+.floating-btn.calendar-btn {
+  background: linear-gradient(
+    135deg,
+    var(--alpina-blue-dark) 0%,
+    var(--alpina-blue) 100%
+  );
+  color: var(--aluminum-silver);
+  border-color: var(--alpina-silver);
+  margin-bottom: 5px;
+  position: relative;
+}
+
+.floating-btn.calendar-btn:hover {
+  background: linear-gradient(
+    135deg,
+    var(--alpina-blue) 0%,
+    var(--alpina-blue-light) 100%
+  );
+  border-color: var(--bmw-m-blue);
+  box-shadow: 
+    0 12px 35px rgba(0, 87, 166, 0.4),
+    0 6px 18px rgba(0, 87, 166, 0.3),
+    0 0 20px rgba(0, 224, 255, 0.3);
+}
+
+.floating-btn.calendar-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle at center,
+    rgba(0, 224, 255, 0.2) 0%,
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.floating-btn.calendar-btn:hover::after {
+  opacity: 1;
+}
+
+/* Иконка календаря */
+.calendar-icon {
+  font-size: 24px;
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 0 10px rgba(0, 224, 255, 0.5);
+}
+
+/* Анимация пульсации для кнопки +500 */
+
+
+/* Анимация золотого свечения */
+@keyframes gold-glow {
   0%, 100% {
-    box-shadow: 
-      0 8px 25px rgba(0, 0, 0, 0.4),
-      0 4px 12px rgba(0, 0, 0, 0.2),
-      0 0 0 0 rgba(0, 136, 204, 0.4);
+    opacity: 0.7;
+    filter: blur(1px);
   }
   50% {
-    box-shadow: 
-      0 8px 25px rgba(0, 0, 0, 0.4),
-      0 4px 12px rgba(0, 0, 0, 0.2),
-      0 0 0 8px rgba(0, 136, 204, 0);
+    opacity: 1;
+    filter: blur(0.5px);
   }
 }
 
@@ -884,15 +943,15 @@ h1 {
 @keyframes calendar-pulse {
   0%, 100% {
     box-shadow: 
-      0 8px 25px rgba(0, 0, 0, 0.4),
-      0 4px 12px rgba(0, 0, 0, 0.2),
-      0 0 0 0 rgba(201, 169, 110, 0.3);
+      0 8px 25px rgba(0, 87, 166, 0.4),
+      0 4px 12px rgba(0, 87, 166, 0.2),
+      0 0 0 0 rgba(0, 224, 255, 0.3);
   }
   50% {
     box-shadow: 
-      0 8px 25px rgba(0, 0, 0, 0.4),
-      0 4px 12px rgba(0, 0, 0, 0.2),
-      0 0 0 6px rgba(201, 169, 110, 0);
+      0 8px 25px rgba(0, 87, 166, 0.4),
+      0 4px 12px rgba(0, 87, 166, 0.2),
+      0 0 0 6px rgba(0, 224, 255, 0);
   }
 }
 
@@ -911,6 +970,10 @@ h1 {
   
   .jump-text {
     font-size: 16px;
+  }
+  
+  .calendar-icon {
+    font-size: 22px;
   }
 }
 
