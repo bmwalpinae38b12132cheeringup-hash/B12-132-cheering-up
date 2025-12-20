@@ -14,6 +14,12 @@
     --alpina-silver-light: #e8e8e8;
     --alpina-silver-dark: #a0a0a0;
 
+      /* Alpina Red - фирменный красный цвет Alpina */
+    --alpina-red: #c8102e; /* Яркий премиум красный */
+    --alpina-red-light: #e63946; /* Светлый вариант */
+    --alpina-red-dark: #9b0a24; /* Тёмный вариант */
+    --alpina-red-glow: rgba(200, 16, 46, 0.4);
+
     /* Alpina Green - фирменный зеленый цвет Alpina */
     --alpina-green: #006a4e;
     --alpina-green-light: #008f6b;
@@ -975,25 +981,9 @@ h1 {
   text-shadow: 0 0 10px rgba(201, 169, 110, 0.5);
 }
 
-.jump-effect {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(
-    circle at center,
-    rgba(201, 169, 110, 0.3) 0%,
-    transparent 70%
-  );
-  border-radius: 50%;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
 
-#jump-500:hover .jump-effect {
-  opacity: 1;
-}
+
+
 
 /* Стили для кнопки календаря - СИНЯЯ ALPINA */
 .floating-btn.calendar-btn {
@@ -1049,20 +1039,85 @@ h1 {
   text-shadow: 0 0 10px rgba(0, 224, 255, 0.5);
 }
 
+/* Стили для кнопки реверса - ALPINA STYLE */
+.floating-btn.reverse-btn {
+  background: linear-gradient(
+    135deg,
+    var(--alpina-silver-light) 0%,
+    var(--alpina-silver) 100%
+  );
+  color: transparent;
+  border-color: var(--alpina-blue);
+  position: relative;
+  overflow: hidden;
+}
+
+
+
+/* Контейнер для стрелок */
+.reverse-arrows {
+  position: relative;
+  width: 52px; /* Уменьшаем ширину */
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Левая стрелка - синяя Alpina, смотрит вниз */
+.arrow-left {
+  position: relative;
+  transform: rotate(90deg) scaleY(-1); /* Поворот + отражение для направления вниз */
+  color: var(--alpina-blue);
+  transition: all 0.3s ease;
+}
+
+/* Правая стрелка - красная Alpina, смотрит вверх */
+.arrow-right {
+  position: relative;
+  transform: rotate(90deg);
+  color: var(--bmw-m-red);
+  transition: all 0.3s ease;
+  margin-top: 10px; /* Добавляем отступ сверху */
+}
+
+/* Эффект при наведении */
+
+
+/* Эффект свечения вокруг кнопки */
+
+
+/* Анимация свечения для реверса */
+
+
+/* Эффект внутреннего свечения */
+
+
+/* Для активного состояния (когда реверс включен) */
+.reverse-btn.active {
+  background: linear-gradient(
+    90deg,
+    var(--alpina-blue) 0%,
+    var(--alpina-blue) 50%,
+    var(--bmw-m-red) 50%,
+    var(--bmw-m-red) 100%
+  );
+  border-color: var(--alpina-gold);
+}
+
+.reverse-btn.active .arrow-left {
+  color: var(--aluminum-silver);
+}
+
+.reverse-btn.active .arrow-right {
+  color: var(--aluminum-silver);
+}
+
 /* Анимация пульсации для кнопки +500 */
 
 
 /* Анимация золотого свечения */
-@keyframes gold-glow {
-  0%, 100% {
-    opacity: 0.7;
-    filter: blur(1px);
-  }
-  50% {
-    opacity: 1;
-    filter: blur(0.5px);
-  }
-}
+
 
 /* Для календаря другая анимация */
 .calendar-btn {
