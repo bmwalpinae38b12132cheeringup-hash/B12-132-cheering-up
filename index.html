@@ -66,6 +66,8 @@
     <img id="lb-img" src="" alt=""/>
     <div id="lb-caption"></div>
 
+
+    
     <button id="lb-share">Поделиться в Telegram</button>
     <button id="lb-prev">‹</button>
     <button id="lb-next">›</button>
@@ -74,6 +76,7 @@
   <script type="module" src="gallery.js"></script>
   <!-- Контейнер для плавающих кнопок -->
   <div class="floating-buttons">
+    
     <button id="calendar-btn" class="floating-btn calendar-btn" title="Открыть календарь">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
         <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2zm-8 4H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z"/>
@@ -84,6 +87,21 @@
       <span class="jump-text">+500</span>
       <div class="jump-effect"></div>
     </button>
+
+    <button id="reverse-btn" class="floating-btn reverse-btn" title="Реверс навигации">
+      <div class="reverse-arrows">
+        <svg class="arrow-right" width="30" height="30" viewBox="0 0 24 24" fill="currentColor">
+          <!-- Более толстая стрелка вправо с длинным горизонтальным стержнем -->
+          <polygon points="8,6 8,9 2,9 2,15 8,15 8,18 17,12"/>
+        </svg>
+        <svg class="arrow-left" width="30" height="30" viewBox="0 0 24 24" fill="currentColor">
+          <!-- Более толстая стрелка влево с длинным горизонтальным стержнем -->
+          <polygon points="16,6 7,12 16,18 16,15 22,15 22,9 16,9"/>
+        </svg>
+
+      </div>
+    </button>
+
   </div>
 </body>
 </html>
