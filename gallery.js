@@ -16,8 +16,16 @@ let loadedImages = new Set(); // Для отслеживания уже загр
 let createdElements = new Map(); // Для хранения уже созданных DOM элементов
 
 // Добавьте эти переменные после других глобальных переменных
+// Добавьте эти переменные после других глобальных переменных в начале файла
 let calendarCurrentDate = new Date();
-let dateImageMap = new Map(); // Будет хранить соответствие дат и индексов изображений
+let dateImageMap = new Map();
+let touchStartX = 0;
+let touchEndX = 0;
+
+let isSwiping = false;
+const SWIPE_THRESHOLD = 50; // Минимальное расстояние свайпа в пикселях
+
+
 
 async function load() {
     console.log('Начало загрузки данных...');
@@ -657,16 +665,91 @@ function buildDateMapForFiltered() {
 
 // Остальные функции (openBox, shareBtn, lb и т.д.) остаются без изменений
 function openBox(i) {
-    console.log(`Открытие лайтбокса для элемента ${i}`);
-    idx = i;
-    const rec = filtered[idx];
+  console.log(`Открытие лайтбокса для элемента ${i}`);
+  idx = i;
+  const rec = filtered[idx];
+
+  // ставим хэш
+  history.replaceState(null, null, '#' + rec.id);
+
+  document.getElementById('lb-img').src = FULL_URL + rec.file;
+  document.getElementById('lb-caption').textContent = rec.caption + ' (' + rec.date.slice(0,10) + ')';
+  document.getElementById('lightbox').classList.remove('hidden');
   
-    // ставим хэш
-    history.replaceState(null, null, '#' + rec.id);
+  // Сброс позиций касания
+  touchStartX = 0;
+  touchEndX = 0;
+  isSwiping = false;
+}
+
+// Добавляем обработчики свайпов
+document.addEventListener('DOMContentLoaded', () => {
+  const lightbox = document.getElementById('lightbox');
+  const lbImg = document.getElementById('lb-img');
   
-    document.getElementById('lb-img').src   = FULL_URL + rec.file;
-    document.getElementById('lb-caption').textContent = rec.caption + ' (' + rec.date.slice(0,10) + ')';
-    document.getElementById('lightbox').classList.remove('hidden');
+  // Обработка начала касания
+  lightbox.addEventListener('touchstart', (e) => {
+    // Запоминаем начальную позицию только если касаемся изображения
+    if (e.target === lbImg || e.target.closest('#lb-prev') || e.target.closest('#lb-next')) {
+      touchStartX = e.touches[0].clientX;
+      isSwiping = true;
+    } else {
+      // Если касаемся фона, кнопок или подписи - разрешаем закрытие
+      isSwiping = false;
+    }
+  }, { passive: true });
+  
+  // Обработка движения касания
+  lightbox.addEventListener('touchmove', (e) => {
+    if (!isSwiping || !touchStartX) return;
+    
+    // Можно добавить визуальный эффект при свайпе
+    const currentX = e.touches[0].clientX;
+    const diff = currentX - touchStartX;
+    
+    // Небольшое смещение изображения для обратной связи
+    if (Math.abs(diff) > 10) {
+      lbImg.style.transform = `translateX(${diff * 0.5}px)`;
+    }
+  }, { passive: true });
+  
+  // Обработка окончания касания (свайп)
+  lightbox.addEventListener('touchend', (e) => {
+    if (!isSwiping || !touchStartX || lightbox.classList.contains('hidden')) return;
+    
+    touchEndX = e.changedTouches[0].clientX;
+    handleSwipe();
+    
+    // Сброс трансформации
+    lbImg.style.transform = '';
+    
+    // Сброс для следующего касания
+    touchStartX = 0;
+    touchEndX = 0;
+    isSwiping = false;
+  }, { passive: true });
+});
+
+// Функция обработки свайпа
+function handleSwipe() {
+  if (!touchStartX || !touchEndX) return;
+  
+  const diffX = touchStartX - touchEndX;
+  
+  // Если свайп достаточно большой
+  if (Math.abs(diffX) > SWIPE_THRESHOLD) {
+    if (diffX > 0) {
+      // Свайп влево - следующий
+      console.log('Свайп влево - следующий');
+      idx = (idx + 1) % filtered.length;
+      openBox(idx);
+    } else {
+      // Свайп вправо - предыдущий
+      console.log('Свайп вправо - предыдущий');
+      idx = (idx - 1 + filtered.length) % filtered.length;
+      openBox(idx);
+    }
+  }
 }
 
 const shareBtn = document.getElementById('lb-share');
