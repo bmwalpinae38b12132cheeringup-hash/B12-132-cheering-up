@@ -1042,17 +1042,17 @@ h1 {
 /* Стили для кнопки реверса - ALPINA STYLE */
 .floating-btn.reverse-btn {
   background: linear-gradient(
-    135deg,
-    var(--alpina-silver-light) 0%,
-    var(--alpina-silver) 100%
+    90deg,
+    var(--bmw-m-red) 0%,
+    var(--bmw-m-red) 50%,
+    var(--alpina-blue) 50%,
+    var(--alpina-blue) 100%
   );
   color: transparent;
-  border-color: var(--alpina-blue);
+  border-color: var(--alpina-gold);
   position: relative;
   overflow: hidden;
 }
-
-
 
 /* Контейнер для стрелок */
 .reverse-arrows {
@@ -1068,7 +1068,7 @@ h1 {
 .arrow-left {
   position: relative;
   transform: rotate(90deg) scaleY(-1); /* Поворот + отражение для направления вниз */
-  color: var(--alpina-blue);
+  color: var(--alpina-silver);
   transition: all 0.3s ease;
 }
 
@@ -1076,41 +1076,32 @@ h1 {
 .arrow-right {
   position: relative;
   transform: rotate(90deg);
-  color: var(--bmw-m-red);
+  color: var(--alpina-silver-dark);
   transition: all 0.3s ease;
   margin-top: 10px; /* Добавляем отступ сверху */
 }
 
 /* Эффект при наведении */
-
-
 /* Эффект свечения вокруг кнопки */
-
-
 /* Анимация свечения для реверса */
-
-
 /* Эффект внутреннего свечения */
-
 
 /* Для активного состояния (когда реверс включен) */
 .reverse-btn.active {
   background: linear-gradient(
-    90deg,
-    var(--alpina-blue) 0%,
-    var(--alpina-blue) 50%,
-    var(--bmw-m-red) 50%,
-    var(--bmw-m-red) 100%
+    135deg,
+    var(--alpina-silver-light) 0%,
+    var(--alpina-silver) 100%
   );
-  border-color: var(--alpina-gold);
+  border-color: var(--alpina-blue);
 }
 
 .reverse-btn.active .arrow-left {
-  color: var(--aluminum-silver);
+  color: var(--bmw-m-red);
 }
 
 .reverse-btn.active .arrow-right {
-  color: var(--aluminum-silver);
+  color: var(--alpina-blue);
 }
 
 /* Анимация пульсации для кнопки +500 */
