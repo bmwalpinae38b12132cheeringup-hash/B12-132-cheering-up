@@ -27,6 +27,8 @@ const SWIPE_THRESHOLD = 50; // Минимальное расстояние св�
 
 let isReversed = false;
 
+let viewedItems = 0; // Сколько элементов пользователь уже увидел
+
 async function load() {
     console.log('Начало загрузки данных...');
     data = await fetch(INDEX_URL).then(r => r.json());
@@ -47,6 +49,8 @@ async function load() {
 
     // Добавляем обработчики для календаря
     initCalendar();
+
+    initTopProgressBar()
 }
 
 
@@ -864,5 +868,91 @@ document.addEventListener('keydown', (e) => {
       break;
   }
 });
+
+// Обновление верхнего прогресс-бара
+// Прогресс-бар для всей страницы
+// Обновление верхнего прогресс-бара
+// Обновление верхнего прогресс-бара
+// Обновление верхнего прогресс-бара
+function updateTopProgressBar() {
+  const grid = document.getElementById('grid');
+  
+  // Проверяем, инициализированы ли данные
+  if (!grid || !filtered) return;
+  
+  // Находим самый нижний видимый элемент
+  const thumbBoxes = grid.querySelectorAll('.thumb-box');
+  let maxVisibleIndex = -1;
+  
+  thumbBoxes.forEach(box => {
+    const rect = box.getBoundingClientRect();
+    // Проверяем, виден ли элемент в viewport (хотя бы частично)
+    if (rect.top < window.innerHeight && rect.bottom > 0) {
+      const index = parseInt(box.dataset.index, 10);
+      if (index > maxVisibleIndex) {
+        maxVisibleIndex = index;
+      }
+    }
+  });
+  
+  // Если нашли видимые элементы, обновляем viewedItems
+  if (maxVisibleIndex >= 0) {
+    // +1 потому что индекс начинается с 0
+    viewedItems = maxVisibleIndex + 1;
+  } else {
+    // Если ничего не видно, возможно мы прокрутили выше всех элементов
+    // Тогда берем первый элемент или 0
+    const firstBox = thumbBoxes[0];
+    if (firstBox) {
+      const rect = firstBox.getBoundingClientRect();
+      if (rect.top >= window.innerHeight) {
+        // Если первый элемент ниже viewport, значит мы еще не дошли до контента
+        viewedItems = 0;
+      }
+    }
+  }
+  
+  // Рассчитываем процент
+  const totalItems = filtered.length;
+  const viewPercent = totalItems > 0 ? (viewedItems / totalItems) * 100 : 0;
+  
+  const progressFill = document.getElementById('top-progress-fill');
+  if (progressFill) {
+    progressFill.style.width = `${viewPercent}%`;
+  }
+}
+
+// Инициализация верхнего прогресс-бара
+function initTopProgressBar() {
+  // Используем requestAnimationFrame для оптимизации
+  let ticking = false;
+  
+  const update = () => {
+    updateTopProgressBar();
+    ticking = false;
+  };
+  
+  const onScroll = () => {
+    if (!ticking) {
+      requestAnimationFrame(update);
+      ticking = true;
+    }
+  };
+  
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
+  
+  // Первоначальное обновление - делаем небольшую задержку
+  setTimeout(update, 100);
+}
+// Инициализация верхнего прогресс-бара
+// Инициализация верхнего прогресс-бара
+
+
+// Вызываем инициализацию
+document.addEventListener('DOMContentLoaded', initTopProgressBar);
+
+// Также вызываем при полной загрузке страницы
+window.addEventListener('load', initTopProgressBar);
 
 load();
