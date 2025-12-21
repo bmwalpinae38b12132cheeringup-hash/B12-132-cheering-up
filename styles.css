@@ -64,6 +64,51 @@ body {
   overflow-x: hidden;
 }
 
+/* Верхний прогресс-бар */
+/* Верхний прогресс-бар Alpina */
+.top-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 8px;
+  background: var(--carbon-black);
+  z-index: 10000;
+  overflow: hidden;
+}
+
+.top-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, 
+    var(--alpina-blue) 0%,
+    var(--alpina-blue-light) 25%,
+    var(--alpina-green-metallic) 60%,
+    var(--alpina-green) 85%,
+    var(--alpina-green-turbo) 100%
+  );
+  transition: width 0.3s ease;
+  box-shadow: 
+    0 0 12px var(--alpina-green-glow),
+    0 0 6px var(--alpina-blue-light);
+}
+
+/* Декоративная полоска в стиле Alpina */
+.top-progress-bar::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+
+  background: linear-gradient(90deg,
+    transparent 0%,
+    var(--alpina-silver) 50%,
+    transparent 100%
+  );
+  opacity: 0.5;
+}
+
 /* ===== ПРОГРЕСС-БАР ALPINA ===== */
 #progress-bar {
   position: fixed;
