@@ -260,6 +260,172 @@ h1 {
   font-size: 0.9em;
 }
 
+/* ===== КОНТЕЙНЕР ЗАГОЛОВКА И ССЫЛОК ===== */
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin: 20px 20px 10px 20px;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.header-main {
+  flex: 1;
+  min-width: 300px;
+}
+
+.header-links {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 200px;
+  margin-top: 5px;
+}
+
+/* ===== СТИЛИ ДЛЯ ССЫЛОК ===== */
+.bought-link,
+.shop-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--aluminum-silver);
+  padding: 10px 15px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  border: 1px solid transparent;
+}
+
+/* Стиль для ссылки "Items bought" */
+.bought-link {
+  margin-top: 30px;
+  border-left: 3px solid var(--alpina-green);
+  background: linear-gradient(90deg, rgba(0, 106, 78, 0.1) 0%, var(--steel-gray) 100%);
+}
+
+.bought-link:hover {
+  color: var(--alpina-gold-light);
+  border-color: var(--alpina-green-light);
+  box-shadow: 0 0 15px var(--alpina-green-glow);
+  background: linear-gradient(90deg, rgba(0, 106, 78, 0.2) 0%, var(--titanium-gray) 100%);
+  transform: translateX(3px);
+}
+
+/* Стиль для ссылки "132 Shop" */
+/*красный 
+.shop-link {
+  border-left: 3px solid var(--alpina-red);
+  background: linear-gradient(90deg, rgba(200, 16, 46, 0.1) 0%, var(--steel-gray) 100%);
+}
+
+.shop-link:hover {
+  color: var(--alpina-red-light);
+  border-color: var(--alpina-red-light);
+  box-shadow: 0 0 15px var(--alpina-red-glow);
+  background: linear-gradient(90deg, rgba(200, 16, 46, 0.2) 0%, var(--titanium-gray) 100%);
+  transform: translateX(3px);
+}
+  */
+
+.shop-link {
+  border-left: 3px solid var(--alpina-blue);
+  background: linear-gradient(90deg, rgba(0, 87, 166, 0.1) 0%, var(--steel-gray) 100%);
+}
+
+
+.shop-link:hover {
+  color: var(--alpina-red-light);
+  border-color: var(--alpina-blue-light);
+  box-shadow: 0 0 15px rgba(0, 87, 166, 0.4);
+  background: linear-gradient(90deg, rgba(0, 87, 166, 0.2) 0%, var(--titanium-gray) 100%);
+  transform: translateX(3px);
+} 
+
+.link-icon {
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+}
+
+.link-text {
+  flex-grow: 1;
+  text-align: left;
+  font-size: 14px;
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+  .header-container {
+    flex-direction: column;
+    gap: 15px;
+    margin: 15px 15px 5px 15px;
+  }
+  
+  .header-links {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  
+  .bought-link,
+  .shop-link {
+    flex: 1;
+    justify-content: center;
+    padding: 8px 12px;
+    margin: 0 5px;
+  }
+  
+  .link-text {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-links {
+    flex-direction: column;
+  }
+  
+  .bought-link,
+  .shop-link {
+    width: 100%;
+    margin: 0;
+  }
+}
+
+/* ===== СТИЛИ ДЛЯ SVG ИКОНОК ===== */
+.link-icon svg {
+  width: 24px;
+  height: 24px;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+/* Анимация иконки при наведении на ссылку */
+.bought-link:hover .link-icon svg {
+  color: var(--alpina-gold-light);
+  transform: scale(1.1) translateX(2px);
+  filter: drop-shadow(0 0 5px var(--alpina-green-glow));
+}
+
+.shop-link:hover .link-icon svg {
+  color: var(--alpina-red-light);
+  transform: scale(1.1) translateX(2px);
+  filter: drop-shadow(0 0 5px rgba(0, 87, 166, 0.2));
+}
+
+/* Анимация самой иконки при наведении */
+.link-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+
 /* ===== ПОИСК ===== */
 /* ===== КОНТЕЙНЕР ПОИСКА (БЕЗ КНОПКИ) ===== */
 .search-container {
