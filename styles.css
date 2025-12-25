@@ -291,7 +291,7 @@ h1 {
   gap: 10px;
   text-decoration: none;
   color: var(--aluminum-silver);
-  padding: 10px 15px;
+  padding: 8px 15px;
   border-radius: 8px;
   transition: all 0.3s ease;
   font-weight: 500;
@@ -1399,3 +1399,4 @@ body.no-scroll {
   width: 100%;
   top: var(--scroll-top, 0);
 }
+
