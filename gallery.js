@@ -756,18 +756,16 @@ function restoreProgressState() {
   }
 }
 
-// Остальные функции (openBox, shareBtn, lb и т.д.) остаются без изменений
+// Остальные функции (openBox, shareBtn, lb и т.д.) остаются без изменений фвы ф
 function openBox(i) {
   console.log(`Открытие лайтбокса для элемента ${i}`);
-
-  // Сохраняем позицию скролла перед открытием
-  scrollPosition = window.scrollY || document.documentElement.scrollTop;
-
+  
+  // Сохраняем текущую позицию скролла в CSS переменной
+  const scrollTop = window.scrollY || document.documentElement.scrollTop;
+  document.documentElement.style.setProperty('--scroll-top', `-${scrollTop}px`);
+  
   idx = i;
   const rec = filtered[idx];
-
-  // Сохраняем текущий прогресс перед открытием
-  saveProgressState();
 
   // ставим хэш
   history.replaceState(null, null, '#' + rec.id);
@@ -870,35 +868,41 @@ const lb = document.getElementById('lightbox');
 lb.addEventListener('click', e => {
   if (e.target.id === 'lb-img' || e.target.id === 'lb-prev' || e.target.id === 'lb-next' || e.target.closest('#lb-caption') || e.target.closest('#lb-share')) return;
   
-  lb.classList.add('hidden');
+  // Получаем сохраненную позицию скролла
+  const scrollTop = parseInt(document.documentElement.style.getPropertyValue('--scroll-top').replace('px', '').replace('-', '')) || 0;
   
-  // Восстанавливаем скролл
+  // Убираем класс no-scroll ДО восстановления позиции
   document.body.classList.remove('no-scroll');
   
-  // Восстанавливаем позицию скролла после небольшой задержки
-  setTimeout(() => {
-    window.scrollTo({
-      top: scrollPosition,
-      behavior: 'auto' // Используем 'auto' для мгновенного возврата
-    });
-    
-    // Также обновляем прогресс-бар
-    updateTopProgressBar();
-  }, 10);
+  // Убираем CSS переменную
+  document.documentElement.style.removeProperty('--scroll-top');
+  
+  // Закрываем лайтбокс
+  lb.classList.add('hidden');
+  
+  // Восстанавливаем позицию скролла (без анимации)
+  window.scrollTo(0, scrollTop);
   
   history.replaceState(null, null, location.pathname);
+  
+  // Обновляем прогресс-бар после небольшой задержки
+  setTimeout(updateTopProgressBar, 50);
 });
 
-document.getElementById('lb-prev').onclick  = () => { 
-    // Сохраняем текущую позицию скролла перед сменой изображения
-    scrollPosition = window.scrollY || document.documentElement.scrollTop;
+document.getElementById('lb-prev').onclick = () => { 
+    // Сохраняем текущую позицию скролла в CSS переменной
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    document.documentElement.style.setProperty('--scroll-top', `-${scrollTop}px`);
+    
     idx = (idx - 1 + filtered.length) % filtered.length; 
     openBox(idx); 
 };
 
-document.getElementById('lb-next').onclick  = () => { 
-    // Сохраняем текущую позицию скролла перед сменой изображения
-    scrollPosition = window.scrollY || document.documentElement.scrollTop;
+document.getElementById('lb-next').onclick = () => { 
+    // Сохраняем текущую позицию скролла в CSS переменной
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    document.documentElement.style.setProperty('--scroll-top', `-${scrollTop}px`);
+    
     idx = (idx + 1) % filtered.length; 
     openBox(idx); 
 };
@@ -911,19 +915,23 @@ document.addEventListener('keydown', (e) => {
   
   switch (e.key) {
     case 'Escape':
-      lightbox.classList.add('hidden');
-      document.body.classList.remove('no-scroll');
+      // Получаем сохраненную позицию скролла
+      const scrollTop = parseInt(document.documentElement.style.getPropertyValue('--scroll-top').replace('px', '').replace('-', '')) || 0;
       
-      // Восстанавливаем позицию скролла
-      setTimeout(() => {
-        window.scrollTo({
-          top: scrollPosition,
-          behavior: 'auto'
-        });
-        updateTopProgressBar();
-      }, 10);
+      // Убираем класс no-scroll
+      document.body.classList.remove('no-scroll');
+      document.documentElement.style.removeProperty('--scroll-top');
+      
+      // Закрываем лайтбокс
+      lightbox.classList.add('hidden');
+      
+      // Восстанавливаем позицию
+      window.scrollTo(0, scrollTop);
       
       history.replaceState(null, null, location.pathname);
+      
+      // Обновляем прогресс-бар
+      setTimeout(updateTopProgressBar, 50);
       break;
     case 'ArrowLeft':
       idx = (idx - 1 + filtered.length) % filtered.length;
