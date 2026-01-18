@@ -14,6 +14,7 @@ let isLoading = false;
 let observer = null;
 let loadedImages = new Set(); // Для отслеживания уже загруженных изображений
 let createdElements = new Map(); // Для хранения уже созданных DOM элементов
+let scrollPosition = 0;
 
 // Добавьте эти переменные после других глобальных переменных
 // Добавьте эти переменные после других глобальных переменных в начале файла
@@ -30,11 +31,21 @@ let isReversed = false;
 let viewedItems = 0; // Сколько элементов пользователь уже увидел
 
 async function load() {
+  console.log('Grid width:', document.getElementById('grid').offsetWidth);
+console.log('Viewport width:', window.innerWidth);
+console.log('Физическая ширина экрана:', window.screen.width);
+console.log('Физическая высота экрана:', window.screen.height);
+console.log('DPR (Device Pixel Ratio):', window.devicePixelRatio);
+console.log('Viewport ширина:', document.documentElement.clientWidth);
+console.log('Внутренняя ширина окна:', window.innerWidth);
     console.log('Начало загрузки данных...');
     data = await fetch(INDEX_URL).then(r => r.json());
     console.log(`Загружено ${data.length} записей`);
     filtered = data;
     renderInitial();
+
+    // Восстанавливаем прогресс если есть
+    restoreProgressState();
   
     const wanted = location.hash.slice(1).split('?')[0];
     if (wanted) {
@@ -725,11 +736,38 @@ function buildDateMapForFiltered() {
   });
 }
 
+function saveProgressState() {
+  // Сохраняем текущее состояние просмотра в sessionStorage
+  sessionStorage.setItem('viewedItems', viewedItems);
+}
+
+function restoreProgressState() {
+  // Восстанавливаем прогресс из sessionStorage
+  const saved = sessionStorage.getItem('viewedItems');
+  if (saved) {
+    viewedItems = parseInt(saved, 10);
+    // Обновляем прогресс-бар
+    const totalItems = filtered.length;
+    const viewPercent = totalItems > 0 ? (viewedItems / totalItems) * 100 : 0;
+    const progressFill = document.getElementById('top-progress-fill');
+    if (progressFill) {
+      progressFill.style.width = `${viewPercent}%`;
+    }
+  }
+}
+
 // Остальные функции (openBox, shareBtn, lb и т.д.) остаются без изменений
 function openBox(i) {
   console.log(`Открытие лайтбокса для элемента ${i}`);
+
+  // Сохраняем позицию скролла перед открытием
+  scrollPosition = window.scrollY || document.documentElement.scrollTop;
+
   idx = i;
   const rec = filtered[idx];
+
+  // Сохраняем текущий прогресс перед открытием
+  saveProgressState();
 
   // ставим хэш
   history.replaceState(null, null, '#' + rec.id);
@@ -831,22 +869,41 @@ const lb = document.getElementById('lightbox');
 
 lb.addEventListener('click', e => {
   if (e.target.id === 'lb-img' || e.target.id === 'lb-prev' || e.target.id === 'lb-next' || e.target.closest('#lb-caption') || e.target.closest('#lb-share')) return;
+  
   lb.classList.add('hidden');
+  
   // Восстанавливаем скролл
   document.body.classList.remove('no-scroll');
+  
+  // Восстанавливаем позицию скролла после небольшой задержки
+  setTimeout(() => {
+    window.scrollTo({
+      top: scrollPosition,
+      behavior: 'auto' // Используем 'auto' для мгновенного возврата
+    });
+    
+    // Также обновляем прогресс-бар
+    updateTopProgressBar();
+  }, 10);
+  
   history.replaceState(null, null, location.pathname);
 });
 
 document.getElementById('lb-prev').onclick  = () => { 
+    // Сохраняем текущую позицию скролла перед сменой изображения
+    scrollPosition = window.scrollY || document.documentElement.scrollTop;
     idx = (idx - 1 + filtered.length) % filtered.length; 
     openBox(idx); 
 };
 
 document.getElementById('lb-next').onclick  = () => { 
+    // Сохраняем текущую позицию скролла перед сменой изображения
+    scrollPosition = window.scrollY || document.documentElement.scrollTop;
     idx = (idx + 1) % filtered.length; 
     openBox(idx); 
 };
 
+// Обработка клавиатуры в лайтбоксе
 // Обработка клавиатуры в лайтбоксе
 document.addEventListener('keydown', (e) => {
   const lightbox = document.getElementById('lightbox');
@@ -856,6 +913,16 @@ document.addEventListener('keydown', (e) => {
     case 'Escape':
       lightbox.classList.add('hidden');
       document.body.classList.remove('no-scroll');
+      
+      // Восстанавливаем позицию скролла
+      setTimeout(() => {
+        window.scrollTo({
+          top: scrollPosition,
+          behavior: 'auto'
+        });
+        updateTopProgressBar();
+      }, 10);
+      
       history.replaceState(null, null, location.pathname);
       break;
     case 'ArrowLeft':
@@ -872,13 +939,37 @@ document.addEventListener('keydown', (e) => {
 // Обновление верхнего прогресс-бара
 // Прогресс-бар для всей страницы
 // Обновление верхнего прогресс-бара
-// Обновление верхнего прогресс-бара
+// Обновление верхнего прогресс-бара ы в вы ыв 
 // Обновление верхнего прогресс-бара
 function updateTopProgressBar() {
   const grid = document.getElementById('grid');
   
   // Проверяем, инициализированы ли данные
   if (!grid || !filtered) return;
+  
+  // Проверяем, открыт ли лайтбокс
+  const lightbox = document.getElementById('lightbox');
+  const isLightboxOpen = !lightbox.classList.contains('hidden');
+  
+  // Если лайтбокс открыт, не обновляем прогресс-бар
+  if (isLightboxOpen) {
+    return;
+  }
+  
+  // Используем сохраненную позицию скролла для расчета прогресса
+  // если пользователь только что закрыл лайтбокс
+  if (scrollPosition > 0) {
+    // Рассчитываем примерный индекс на основе позиции скролла
+    const scrollTop = scrollPosition;
+    const gridTop = grid.getBoundingClientRect().top + window.scrollY;
+    const gridHeight = grid.offsetHeight;
+    const totalItems = filtered.length;
+    
+    if (gridHeight > 0) {
+      const scrollPercent = Math.min(1, Math.max(0, (scrollTop - gridTop) / gridHeight));
+      viewedItems = Math.floor(scrollPercent * totalItems);
+    }
+  }
   
   // Находим самый нижний видимый элемент
   const thumbBoxes = grid.querySelectorAll('.thumb-box');
@@ -899,17 +990,6 @@ function updateTopProgressBar() {
   if (maxVisibleIndex >= 0) {
     // +1 потому что индекс начинается с 0
     viewedItems = maxVisibleIndex + 1;
-  } else {
-    // Если ничего не видно, возможно мы прокрутили выше всех элементов
-    // Тогда берем первый элемент или 0
-    const firstBox = thumbBoxes[0];
-    if (firstBox) {
-      const rect = firstBox.getBoundingClientRect();
-      if (rect.top >= window.innerHeight) {
-        // Если первый элемент ниже viewport, значит мы еще не дошли до контента
-        viewedItems = 0;
-      }
-    }
   }
   
   // Рассчитываем процент
